@@ -1,0 +1,11 @@
+.daterangepicker .calendar-table {
+    background-color: #666 !important;
+  }
+  
+  .daterangepicker {
+    background-color: #666;
+  }
+
+  .daterangepicker .drp-buttons .btn {
+    margin-left: 0px;
+  }

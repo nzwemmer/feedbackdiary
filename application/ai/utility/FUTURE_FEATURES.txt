@@ -1,0 +1,9 @@
+1) Per-student analysis on performance, overall feeling of well-being, improvement of sentiment over time.
+2) Detection of delibirate fooling of the system.
+3) Bad language detection expansion and attempts to correct student about it if necessary.
+4) Model improvements, re-learning (down stream) of models for applying to this specific case.
+5) Student selection, better certainty about the model's accuracy that way. Right now, students can mess up positive, negative and additional messages, or the overall sentiment.
+6) Integrate teacher part of FD in FD itself, where the website would be converted to a full React/Python backend version.
+7) Outlier manual lookup and sentiment determination. Possibly even with auto-retraining behind the scenes based on this result.
+8) Integration with AI Chatbot for students and teachers.
+9) Make everything work with MongoDB, including analysis results. Currently, result JSON files are being used. MongoDB can just handle JSON no problem.

@@ -1,0 +1,136 @@
+/* Media query for dark mode */
+@media (prefers-color-scheme: dark) {
+
+    body, html {
+        color: #c7c7cb;
+        background-image: url("../images/backgrounddark.png");
+    }
+
+    p, h1 {
+        color: #c7c7cb;
+    }
+
+    form {
+        background: #373640;
+      }
+
+
+    .pre-footer label {
+        border: 1px solid #c7c7cb;
+        background-color: #373640;
+    }
+
+    .pre-footer input[type="radio"]:checked + span {
+        color: #c7c7cb;
+    }
+
+    .pre-footer input[type="radio"]:not(:checked) + span {
+        color: #c7c7cb;
+    }
+    
+    .pre-footer label:hover {
+        background-color: #000;
+    }
+
+    .footer {
+        background-color: #000;
+    }
+
+    a {
+        color: #c7c7cb;
+    }
+
+    button,
+    a.logout {
+        border: 2px solid #c7c7cb;
+        background: #373640;
+        color: #c7c7cb;
+    }
+
+    a.logout {
+        background: red;
+    }
+
+    .form-inner input,
+    .form-inner textarea,
+    .form-inner select {
+        background: #484759;
+        border-color: #484759;
+        border-radius: 20px;
+        color: #c7c7cb;
+        font-size: 14px;
+    }
+
+    .errorLogo {
+        color: red !important;
+    }
+
+    .successLogo {
+        color: darkgreen !important;
+    }
+
+    .warningBorder {
+        border: 2px solid red !important;
+    }
+
+    #warningMobile, #warningLogo {
+        color: red;
+    }
+
+    #positiveLogo {
+        color: green;
+    }
+
+    h2 {
+        color: #c7c7cb;
+    }
+
+    #popupContainer {
+        background-color: rgba(0, 0, 0, 0.7);
+    }
+
+    #popupContent {
+        background-color: #373640;
+    }
+
+    #popupReminder {
+        color: #c7c7cb;
+    }
+
+    .red {
+        color: red;
+    }
+
+    .orange {
+        color: darkorange;
+    }
+
+    /* Style the custom checkbox */
+    .checkbox-custom {
+        background-color: #373640; /* Replace with your desired color */
+        color: #c7c7cb;
+        border: 1px solid #c7c7cb;
+    }
+
+    /* Style the custom checkbox when checked */
+    input[type="checkbox"]:checked + .checkbox-custom::before {
+        color: #c7c7cb; /* Replace with the desired checkmark color */
+    }
+
+    /* Style the label text */
+    label {
+        color: #c7c7cb; /* Replace with your desired text color */
+    }
+
+    .entry {
+        background-color: #484759;
+    }
+
+    .bold-hr {
+        background-color: #484759;
+      }
+      
+    .regular-hr {
+        background-color: #444;
+    }
+}

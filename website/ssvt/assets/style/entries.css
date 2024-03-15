@@ -1,0 +1,38 @@
+.entry {
+    background-color: #F2F2F2;
+    border: 1px solid #444;
+    padding: 10px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+}
+
+.time {
+    font-weight: bold;
+}
+
+.positive {
+    color: green;
+    font-weight: bold;
+}
+
+.negative {
+    color: red;
+    font-weight: bold;
+}
+
+.additional {
+    font-style: italic;
+}
+
+.bold-hr {
+    border: none;
+    height: 2px;
+    background-color: #d4d4d4;
+    font-weight: bold;
+  }
+  
+.regular-hr {
+    border: none;
+    height: 2px;
+    background-color: #d4d4d4;
+}

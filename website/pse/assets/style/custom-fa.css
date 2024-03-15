@@ -1,0 +1,194 @@
+ul.fa-list {
+  list-style-type: none;
+  padding: 0;
+  margin-left: 1%;
+}
+
+ul.fa-list::before {
+  content: none;
+}
+
+ul.fa-list li {
+  position: relative;
+  padding-left: 20px;
+}
+
+ul.fa-list li::before {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: FontAwesome;
+}
+
+ul.fa-list li.fa-key::before {
+  content: '\f084';
+}
+
+ul.fa-list li.fa-user-plus::before {
+  content: '\f234';
+}
+
+ul.fa-list li.fa-unlock-keyhole::before {
+  content: '\f13e';
+}
+
+ul.fa-list li.fa-triangle-exclamation::before {
+  content: '\f071';
+  color: red;
+}
+
+ul.fa-list li.fa-thumbs-up::before {
+  content: '\f164';
+}
+
+ul.fa-list li.fa-thumbs-down::before {
+  content: '\f165';
+}
+
+ul.fa-list li.fa-question::before {
+  content: '\f059';
+}
+
+ul.fa-list li.fa-globe::before {
+  content: '\f0ac';
+}
+
+ul.fa-list li.fa-calendar-week::before {
+  content: '\f073';
+}
+
+ul.fa-list li.fa-investigate::before {
+  content: '\f002';
+}
+
+ul.fa-list li.fa-comments::before {
+  content: '\f086';
+}
+
+ul.fa-list li.fa-bolt-lightning::before {
+  content: '\e0b7';
+}
+
+ul.fa-list li.fa-database::before {
+  content: '\f1c0';
+}
+
+ul.fa-list li.fa-code-compare::before {
+  content: '\e13a';
+}
+
+ul.fa-list li.fa-clock-left::before {
+  content: '\f1da';
+}
+
+ul.fa-list li.fa-book::before {
+  content: '\f02d';
+}
+
+ul.fa-list li.fa-face-laugh-wink::before {
+  content: '\f59c';
+}
+
+ul.fa-list li.fa-brush::before {
+  content: '\f55d';
+}
+
+.fa-popuptext p {
+  margin-bottom: -10px;
+}
+
+.new-feature-icon {
+  color: orangered;
+  font-size: 8pt;
+}
+
+.new-feature-icon::before {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 5px;
+  font-size: 11pt;
+  content: '\f005';
+  transform: translateY(-10%);
+  font-family: FontAwesome;
+}
+
+.icon-outline {
+  text-shadow: 0 0 3px #000;
+}
+
+.errorLogo {
+  color: red !important;
+}
+
+.warningLogo {
+  color: orange !important;
+}
+
+.successLogo {
+  color: lightgreen !important;
+}
+
+.refresh-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  color: gray;
+}
+
+.refresh-button:hover {
+  color: green;
+}
+
+.sentiment-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sentiment-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 30px;
+  margin: 5px;
+  color: #D2D2D9;
+}
+
+.sentiment-button:hover, .emotion {
+  color: #ffde34;
+}
+
+.sentiment-button.active, .angry {
+  color: darkred;
+}
+
+.sentiment-button.active-1, .frown {
+  color: red;
+}
+
+.sentiment-button.active-2, .meh {
+  color: darkorange;
+}
+
+.sentiment-button.active-3, .smile {
+  color: lightgreen;
+}
+
+.sentiment-button.active-4, .beam {
+  color: green;
+}
+
+.sentiment-button i {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.75);
+}
+
+.dizzy {
+  color: gray;
+}
+
+/* Exclude sentiment buttons from hover background */
+.sentiment-button:hover {
+  background: none;
+}

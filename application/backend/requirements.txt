@@ -1,0 +1,5 @@
+pyjwt
+datetime
+uuid
+Flask-SQLAlchemy
+openpyxl
