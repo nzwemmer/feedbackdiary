@@ -5,12 +5,11 @@ from application.ai.utility.reader import read_json_messages
 from application.ai.utility.fd_exceptions import *
 from application.ai.utility.common import *
 from application.backend.common import *
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from datetime import datetime
 
 from transformers import pipeline
 import numpy as np
-import os
+import torch
 
 def check_file_exists(file_path):
     return os.path.exists(file_path)
@@ -80,29 +79,35 @@ def average_sentiment(scores):
 
 ######################################################################### MODELS #########################################################################
 ############## DistilBERT mulitlingual uncased Sentiment Analysis
-def distilbert_fd(message):
-
+def distilbert_fd(message, device="cpu"):
     model_path = f"/home/feedbackdiary/feedbackdiary/application/ai/models/nlptown/bert-base-multilingual-uncased-sentiment"
+
     if check_file_exists(model_path):
-        # Load the tokenizer and model.
+        # Load the tokenizer and model onto the GPU.
         tokenizer = AutoTokenizer.from_pretrained(f"{model_path}/tokenizer")
-        model = AutoModelForSequenceClassification.from_pretrained(f"{model_path}/model")
+        model = AutoModelForSequenceClassification.from_pretrained(f"{model_path}/model").to(device)
     else:
         print("ERROR IN DISTILBERT MULTIL UNCASED SENTIMENT: MODEL DOES NOT EXIST!")
 
-    inputs = tokenizer.encode_plus(message, add_special_tokens=True, return_tensors="pt")
+    # Move inputs to GPU if available
+    inputs = tokenizer.encode_plus(message, add_special_tokens=True, return_tensors="pt").to(device)
     outputs = model(**inputs)
-    predicted_class = outputs.logits.argmax().item()
+
+    # Move logits to CPU for further processing
+    logits = outputs.logits.detach().cpu()
+    predicted_class = logits.argmax().item()
+
     sentiment_classes = ['very negative', 'negative', 'neutral', 'positive', 'very positive']
     predicted_sentiment = sentiment_classes[predicted_class]
+
     return predicted_sentiment
 ############## DistilBERT mulitling Sentiment Analysis
 ############## lxyuan/distilbert-base-multilingual-cased-sentiments-student ################
-def lxyuan_fd(message):
+def lxyuan_fd(message, device="cpu"):
     distilled_student_sentiment_classifier = pipeline(
         model="lxyuan/distilbert-base-multilingual-cased-sentiments-student", 
         top_k=None,
-        device=0
+        device=device
     )
 
     result = distilled_student_sentiment_classifier(message)[0][0]
@@ -124,12 +129,15 @@ def vader_fd(message):
 ############## VADER ##############
 
 def run_sentiment_analysis(course, read_paths, store_paths, ai=False, verbose=False, overwrite=False):
+    # Check if GPU is available for models supporting it.
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     student_path, teacher_path, message_path = read_paths
     student_data_path, ai_data_path, accuracy_path = store_paths
 
     # If overwrite was set to true (PUT request), re-filter all input messages for use with sentiment analysis. 
     # If overwrite was set to false (POST request), do not re-filter and just read the files instead.
-    all_messages = read_json_messages(course, student_path, teacher_path, message_path, overwrite, sentiment_analysis=True)
+    all_messages = read_json_messages(course, student_path, teacher_path, message_path, overwrite, return_entries=True)
 
     # Used for storing the sentiments parsed by students and the AI.
     student_sentiments = {'very negative': 0, 'negative': 0, 'neutral': 0, 'positive': 0, 'very positive': 0}
@@ -167,23 +175,19 @@ def run_sentiment_analysis(course, read_paths, store_paths, ai=False, verbose=Fa
             add = entry['additional']
 
             # Perform sentiment analysis on each of the messages within an entry.
-            # The placeholder message can be omitted, saving on some computation time.
-            # I consider this message neutral. Add it to each model results for normal computation afterwards.
+            # The placeholder comment from the Diary Dashboard: '_none_' is omitted, saving on some computation time.
+            # I consider not providing a comment in the additional field, neutral sentiment. 
+            # Add it to each model results for normal computation afterwards.
             if "_none_" in add:
-                print("Empty additional detected, skipping.")
-                lxyuan = [lxyuan_fd(pos)['fd_score'], lxyuan_fd(neg)['fd_score']]
-                distilbert = [distilbert_fd(pos), distilbert_fd(neg)]
-                vader = [vader_fd(pos)['fd_score'], vader_fd(neg)['fd_score']]
-                
                 # Add neutral as this influences the results in the least significant way.
-                # Also, we expect that students leaving the field empty means they feel indifferent to this particular submission.
-                lxyuan.append("neutral")
-                distilbert.append("neutral")
-                vader.append("neutral")
+                # We expect that students leaving the field empty means they feel indifferent to this particular submission.
+                lxyuan =     [lxyuan_fd(pos, device)['fd_score'], lxyuan_fd(neg, device)['fd_score'], "neutral"]
+                distilbert = [distilbert_fd(pos, device), distilbert_fd(neg, device), "neutral"]
+                vader =      [vader_fd(pos)['fd_score'], vader_fd(neg)['fd_score'], "neutral"]
             else:
-                lxyuan = [lxyuan_fd(pos)['fd_score'], lxyuan_fd(neg)['fd_score'], lxyuan_fd(add)['fd_score']]
-                distilbert = [distilbert_fd(pos), distilbert_fd(neg), distilbert_fd(add)]
-                vader = [vader_fd(pos)['fd_score'], vader_fd(neg)['fd_score'], vader_fd(add)['fd_score']]
+                lxyuan =     [lxyuan_fd(pos, device)['fd_score'], lxyuan_fd(neg, device)['fd_score'], lxyuan_fd(add, device)['fd_score']]
+                distilbert = [distilbert_fd(pos, device), distilbert_fd(neg, device), distilbert_fd(add, device)]
+                vader =      [vader_fd(pos)['fd_score'], vader_fd(neg)['fd_score'], vader_fd(add)['fd_score']]
 
             # First calculate all averages for each type (positive, negative, additional) for all model results.
             pos_average = average_sentiment([lxyuan[0], distilbert[0], vader[0]])

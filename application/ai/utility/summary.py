@@ -3,7 +3,8 @@ import os
 from datetime import datetime
 from application.ai.utility.reader import read_json_full
 from application.backend.common import *
-
+import torch
+import argparse
 
 def combine_category(messages):
     max_length = 1024
@@ -38,9 +39,44 @@ def combine_category(messages):
 
     return summary_list[0]
 
-def summarize(text, truncate=False):
-    summarizer = pipeline("summarization", model="knkarthick/MEETING_SUMMARY", truncation=truncate, device=0)
-    return summarizer(text)[0]['summary_text']
+def summarize(text, device=None, truncate=False):
+    if not device:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    summarizer = pipeline("summarization", model="knkarthick/MEETING_SUMMARY", truncation=truncate, device=device)
+    summary = summarizer(text)[0]['summary_text']
+    del summarizer  # Deleting the summarizer object to release GPU memory
+    torch.cuda.empty_cache() # Also emptying cache to further clear GPU memory
+    return summary
+
+def run_truncated(message_path, store_path=None, device=None, overwrite=False):
+    
+    if store_path:
+        if os.path.exists(store_path) and not overwrite:
+            summaries = read_json(store_path)
+            modify_date = datetime.fromtimestamp(os.path.getmtime(store_path))
+            return summaries, modify_date
+
+    messages = read_json_full(message_path)["entries"]
+    positive, negative, additional = zip(*[(message["positive"], message["negative"], message["additional"]) for message in messages])
+
+    positive_string = "".join(positive)
+    negative_string = "".join(negative)
+    additional_string = "".join(additional)
+
+    summaries = {
+        "positive_summary" : summarize(positive_string, device, truncate=True).replace("sodm", "REDACTED"),
+        "negative_summary" : summarize(negative_string, device, truncate=True).replace("sodm", "REDACTED"),
+        "additional_summary" : summarize(additional_string, device, truncate=True).replace("sodm", "REDACTED")
+    }
+
+    if store_path:
+        store_json(store_path, summaries)
+        modify_date = datetime.fromtimestamp(os.path.getmtime(store_path))
+
+        return summaries, modify_date
+    else:
+        return summaries
 
 def run_combined_messages(message_path):
     messages = read_json_full(message_path)["entries"]
@@ -55,38 +91,17 @@ def run_combined_messages(message_path):
     print("Additional")
     print(combine_category(additional))
 
-def run_truncated(message_path, store_path, overwrite=False):
-    if os.path.exists(store_path) and not overwrite:
-        summaries = read_json(store_path)
-        modify_date = datetime.fromtimestamp(os.path.getmtime(store_path))
-        return summaries, modify_date
-
-    messages = read_json_full(message_path)["entries"]
-    positive, negative, additional = zip(*[(message["positive"], message["negative"], message["additional"]) for message in messages])
-
-    positive_string = "".join(positive)
-    negative_string = "".join(negative)
-    additional_string = "".join(additional)
-
-    positive_summary_result = summarize(positive_string, truncate=True).replace("sodm", "REDACTED")
-    negative_summary_result = summarize(negative_string, truncate=True).replace("sodm", "REDACTED")
-    additional_summary_result = summarize(additional_string, truncate=True).replace("sodm", "REDACTED")
-
-    summaries = {
-        "positive_summary" : positive_summary_result,
-        "negative_summary" : negative_summary_result,
-        "additional_summary" : additional_summary_result
-    }
-
-    store_json(store_path, summaries)
-    modify_date = datetime.fromtimestamp(os.path.getmtime(store_path))
-
-    return summaries, modify_date
 
 if __name__ == "__main__":
-    # run_combined_messages(message_path)  Useful if truncated messages somehow do not create accurate enough results. Much slower however. Omitted for POC version.
-    message_path = "../../data/KNP/messages_filtered.json"
+    message_path = "../../data/PSE/messages_filtered.json"
 
-    run_truncated(message_path)
+    parser = argparse.ArgumentParser(description="Run truncated function with specified arguments.")
+    parser.add_argument("--device", default="cpu", choices=["cpu", "cuda"], help="Specify the device (cpu/cuda)")
 
-    student_sentiment, ai_sentiment, accuracy, modify_date_student, modify_date_ai = sentiment_analysis.run_sentiment_analysis(course, read_paths, store_paths, ai, verbose, overwrite)
+    args = parser.parse_args()
+
+    message_path = "../../data/PSE/messages_filtered.json"
+    run_truncated(message_path, None, device=args.device)
+
+    # Useful if truncated messages somehow do not create accurate enough results. Much slower however. Omitted for POC version.
+    # run_combined_messages(message_path) 

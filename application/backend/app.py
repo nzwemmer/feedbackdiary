@@ -1,7 +1,6 @@
 import os
 from flask import Flask, request, jsonify, render_template_string
 from flask_cors import CORS
-import timeout_decorator
 import re
 from datetime import datetime, timedelta
 from flask_jwt_extended import create_access_token, get_jwt_identity, \
@@ -241,7 +240,6 @@ def load_courses():
     return jsonify(course_list)
 
 # # Admin panel data route
-# TODO: Verify access to certain course.
 @app.route('/api/load/sentiment/overtime', methods=['POST'])
 @jwt_required()
 def get_sentiment_over_time():
@@ -362,12 +360,12 @@ def download_all_data():
 # Admin panel data route
 @app.route('/api/load/sentiment', methods=['POST', 'PUT'])
 @jwt_required()
-@timeout_decorator.timeout(600, use_signals=False)
 def get_sentiment():
     overwrite = False
-    verbose = True  # Verbose is false for API call, can be set to True for debugging.
+    verbose = False  # Verbose is false for API call, can be set to True for debugging.
     arguments = request.get_json()
 
+    # arguments["course"] is the course abbreviation, agruments["type"] is student/ai argument.
     if arguments and "course" in arguments and "type" in arguments:
         course = arguments["course"]
         sentiment_type = arguments["type"]
@@ -405,7 +403,7 @@ def get_summary():
 
         return {"data" : summaries, "modify_date" : format_human_readable_date(modify_date)}
     else:
-        return {"error": "Course argument not provided."}, 200
+        return {"error": "Course argument not provided."}, 400
 
 if __name__ == '__main__':
     # app.run(ssl_context=('../.cert/cert.pem', '../.cert/key.pem'), debug=True, port=12345, host="0.0.0.0")

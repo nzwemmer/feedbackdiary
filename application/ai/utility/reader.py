@@ -13,11 +13,10 @@ def read_text(path="data/text.txt"):
                 lines.append(line.strip())
     return lines
 
-def read_json_messages(course, student_path, teacher_path, message_path, overwrite=False, sentiment_analysis=False, verbose=False):
-
-    # For sentiment analysis, we need to only filter out the unneccessary information but 
+def read_json_messages(course, student_path, teacher_path, message_path, overwrite=False, return_entries=False, verbose=False):
+    # For returning entries, we need to only filter out the unneccessary information but 
     # we still want to compare sentiment for each of the entries, complete with pos/neg/add messages including parsed sentiment.
-    if sentiment_analysis:
+    if return_entries:
         read_path = f"../data/{course}/messages_filtered.json"
     # The alternative here is for the counters. The counters only consider the exact pos/neg/add messages.
     else:
@@ -60,7 +59,7 @@ def read_json_messages(course, student_path, teacher_path, message_path, overwri
         additional_message = remove_names_from_message(additional_message, names)
 
         # If a request to the reader was done for sentiment analysis, make sure it is stored for processing later.
-        if sentiment_analysis:
+        if return_entries:
             entries_filtered.append({"positive" : positive_message, "negative" : negative_message, "additional" : additional_message, "sentiment" : sentiment})
         else:
             # Append sentiment to its list of sentiments.
@@ -69,9 +68,11 @@ def read_json_messages(course, student_path, teacher_path, message_path, overwri
             # Add the messages to their respective list.
             positive_messages.append(positive_message)
             negative_messages.append(negative_message)
-            additional_messages.append(additional_message)
 
-    if sentiment_analysis:
+            if "_none" not in additional_message:
+                additional_messages.append(additional_message)
+
+    if return_entries:
          # Save the output of a the filtered entries separate to a file for sentiment analysis.
         with open(read_path, 'w') as output_file:
             json.dump({
