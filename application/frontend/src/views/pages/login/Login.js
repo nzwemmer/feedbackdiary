@@ -247,7 +247,7 @@ const Login = () => {
                   <CCard className="p-4">
                     <CCardHeader>
                       <CCardTitle>Welcome to Feedbackdiary</CCardTitle>
-                      <CCardSubtitle>Teacher Dashboard</CCardSubtitle>
+                      <CCardSubtitle>Feedback Dashboard</CCardSubtitle>
                     </CCardHeader>
                     <CCardBody>
                       <CForm onSubmit={handleSubmit}>

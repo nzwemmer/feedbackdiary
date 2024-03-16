@@ -6,6 +6,6 @@
     <button type="button" onclick="redirectToURL('https://pse.feedbackdiary.nl')">Project Software Engineering</button>
 </div>
 <div class="form-inner" style="text-align: center;">
-    <h1> Looking for the teacher dashboard? </h1>
-    <button type="button" onclick="redirectToURL('https://teacher.feedbackdiary.nl')">Go to teacher dashboard</button>
+    <h1> Are you a teacher, looking for the Feedback Dashboard? </h1>
+    <button type="button" onclick="redirectToURL('https://teacher.feedbackdiary.nl')">Go to Feedback Dashboard</button>
 </div>
