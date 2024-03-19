@@ -40,13 +40,14 @@ def combine_category(messages):
     return summary_list[0]
 
 def summarize(text, device=None, truncate=False):
-    if not device:
+    # If no device or GPU was parsed, choose the best available option. 
+    # If GPU is unavailable, instead of crashing, it will resort to CPU.
+    if not device or device == "gpu":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    summarizer = pipeline("summarization", model="knkarthick/MEETING_SUMMARY", truncation=truncate, device=device)
-    summary = summarizer(text)[0]['summary_text']
-    del summarizer  # Deleting the summarizer object to release GPU memory
-    torch.cuda.empty_cache() # Also emptying cache to further clear GPU memory
+    summarizer = pipeline("text2text-generation", model="lxyuan/distilbart-finetuned-summarization", truncation=truncate, device=device)
+    summary = summarizer(text)[0]['generated_text']
+
     return summary
 
 def run_truncated(message_path, store_path=None, device=None, overwrite=False):
@@ -96,12 +97,12 @@ if __name__ == "__main__":
     message_path = "../../data/PSE/messages_filtered.json"
 
     parser = argparse.ArgumentParser(description="Run truncated function with specified arguments.")
-    parser.add_argument("--device", default="cpu", choices=["cpu", "cuda"], help="Specify the device (cpu/cuda)")
+    parser.add_argument("--device", default="cpu", choices=["cpu", "gpu"], help="Specify the device (cpu/cuda)")
 
     args = parser.parse_args()
 
     message_path = "../../data/PSE/messages_filtered.json"
-    run_truncated(message_path, None, device=args.device)
+    run_truncated(message_path, "TEST.JSON", device=args.device)
 
     # Useful if truncated messages somehow do not create accurate enough results. Much slower however. Omitted for POC version.
     # run_combined_messages(message_path) 
