@@ -1,6 +1,6 @@
 import os
 from application.ai.utility.reader import read_json_messages
-from application.ai.utility.fd_exceptions import *
+# from application.ai.utility.fd_exceptions import *
 from application.ai.utility.common import *
 import application.ai.included.models as models_mod
 import application.ai.included.tools as tools_mod
