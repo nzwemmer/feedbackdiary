@@ -1,11 +1,14 @@
 import nltk
 from nltk.corpus import stopwords, words
 
+
 def nltk_download():
     # Download NLTK resources (if not already downloaded)
     nltk.download('punkt')  # Used for tokenization.
-    nltk.download('stopwords') # Used to determine stopwords for all languages.
+    # Used to determine stopwords for all languages.
+    nltk.download('stopwords')
     nltk.download('words')
+
 
 def nltk_setup():
     # Load NLTK stopwords for English

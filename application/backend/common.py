@@ -3,12 +3,15 @@ import random
 import json
 import re
 # TODO: Delete me after finishing.
+
+
 def generate_random_data(start_date_str, end_date_str):
     data = {}
 
     # Convert start_date_str and end_date_str to datetime objects
     start_date = datetime.strptime(start_date_str, "%d/%m/%Y")
-    end_date = datetime.strptime(end_date_str, "%d/%m/%Y") + timedelta(days=1)  # Add one day to include the end date
+    # Add one day to include the end date
+    end_date = datetime.strptime(end_date_str, "%d/%m/%Y") + timedelta(days=1)
 
     current_date = start_date
     while current_date < end_date:
@@ -38,21 +41,19 @@ def process_json_file(json_file_path):
     for entry in data:
         sentiment = entry["sentiment"]
         date_added = entry["date"]
-        formatted_date = datetime.strptime(date_added, "%Y-%m-%d %H:%M:%S").strftime("%d/%m/%Y %H:%M")
+        formatted_date = datetime.strptime(
+            date_added, "%Y-%m-%d %H:%M:%S").strftime("%d/%m/%Y %H:%M")
 
-        if sentiment == -1:
-            sentiment_category = "negative"
-        elif sentiment == 0:
-            sentiment_category = "neutral"
-        elif sentiment == 1:
-            sentiment_category = "positive"
-        elif sentiment == -2:
-            sentiment_category = "very negative"
-        elif sentiment == 2:
-            sentiment_category = "very positive"
-        else:
-            sentiment_category = "neutral"  # Entries with unknown sentiment are considered neutral.
-            # continue  # Skip entries with unknown sentiment
+        sentiment_mapping = {
+            -2: "very negative",
+            -1: "negative",
+            0: "neutral",
+            1: "positive",
+            2: "very positive"
+        }
+
+        # Check if sentiment value exists in the mapping, otherwise default to "neutral"
+        sentiment_category = sentiment_mapping.get(sentiment, "neutral")
 
         if formatted_date not in sentiment_data[sentiment_category]:
             sentiment_data[sentiment_category][formatted_date] = 1
@@ -68,6 +69,7 @@ def process_json_file(json_file_path):
     }
 
     return result_data
+
 
 def format_human_readable_date(input_datetime):
     now = datetime.now()
@@ -93,18 +95,21 @@ def format_human_readable_date(input_datetime):
     else:
         return input_datetime.strftime("%Y-%m-%d %H:%M:%S")
 
+
 def date_between_range(startDate, currentDate, endDate):
     # Parse the date strings into datetime objects, assuming a common year (e.g., 2023)
     start = datetime.strptime(startDate, "%d/%m/%Y")
     current = datetime.strptime(currentDate.split()[0], "%d/%m/%Y")
     end = datetime.strptime(endDate, "%d/%m/%Y")
-    
+
     # Compare the datetime objects
     return start <= current <= end
+
 
 def store_json(save_path, data):
     with open(save_path, 'w') as json_file:
         json.dump(data, json_file)
+
 
 def read_json(save_path):
     with open(save_path, 'r') as json_file:

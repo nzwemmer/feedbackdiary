@@ -4,7 +4,7 @@ from flask_cors import CORS
 import re
 from datetime import datetime, timedelta
 from flask_jwt_extended import create_access_token, get_jwt_identity, \
-                               unset_jwt_cookies, jwt_required, JWTManager
+    unset_jwt_cookies, jwt_required, JWTManager
 from application.ai.utility import count_recurring
 from application.ai.utility import sentiment_analysis
 from application.ai.utility import summary
@@ -22,9 +22,9 @@ from flask_sslify import SSLify
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
-mail = Mail(app) # instantiate the mail class
+mail = Mail(app)  # instantiate the mail class
 
-app.config['MAIL_SERVER']='live.smtp.mailtrap.io'
+app.config['MAIL_SERVER'] = 'live.smtp.mailtrap.io'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USERNAME'] = 'api'
 app.config['MAIL_PASSWORD'] = os.environ['MAIL_PASS']
@@ -38,9 +38,10 @@ jwt = JWTManager(app)
 
 sslify = SSLify(app)
 
-CORS(app, resources={r'/api/*': {'origins': '*', 'supports_credentials': True}})
+CORS(app, resources={
+     r'/api/*': {'origins': '*', 'supports_credentials': True}})
 
-# JSON API routes
+
 @app.route('/api/login', methods=['POST'])
 def login_user():
     _, col_teachers = connect.establish_connection()
@@ -59,6 +60,7 @@ def login_user():
         return {"msg": "Credentials accepted!", "access_token": access_token}, 200
     else:
         return {"msg": "Wrong email or password"}, 401
+
 
 @app.route("/api/register", methods=["POST"])
 def register():
@@ -93,7 +95,6 @@ def register():
     else:
         # Hash the password for adding later.
         pw_hash = bcrypt.generate_password_hash(password).decode('utf-8')
-
 
     # Add courses to either new or existing teacher.
     for course_token in course_tokens.split(";"):
@@ -136,6 +137,7 @@ def register():
         else:
             return {"msg": "There was an error. Please try again later."}, 500
 
+
 @app.route('/api/changepasswordrequest', methods=['POST'])
 def change_password_request():
     _, col_teachers = connect.establish_connection()
@@ -149,10 +151,12 @@ def change_password_request():
         return {"msg": "Email not found"}, 404
 
     # Generate a random reset token (you can customize this)
-    reset_token = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+    reset_token = ''.join(random.choices(
+        string.ascii_letters + string.digits, k=32))
 
     # Store the reset token in the teacher document in the database
-    col_teachers.update_one({"email": email}, {"$set": {"reset_token": reset_token}})
+    col_teachers.update_one(
+        {"email": email}, {"$set": {"reset_token": reset_token}})
 
     # Load the HTML template file
     with open("reset_password_email_template.html", "r") as template_file:
@@ -160,9 +164,11 @@ def change_password_request():
 
     # Replace placeholders with actual content
     reset_link = f'https://teacher.feedbackdiary.nl/changepassword/{reset_token}/{email}'
-    email_content = render_template_string(template_content, reset_link=reset_link)
+    email_content = render_template_string(
+        template_content, reset_link=reset_link)
 
-    msg = Message('Password Reset', sender='no-reply@feedbackdiary.nl', recipients=[email])
+    msg = Message('Password Reset',
+                  sender='no-reply@feedbackdiary.nl', recipients=[email])
     msg.html = email_content
 
     # Send the email
@@ -171,6 +177,7 @@ def change_password_request():
         return {"msg": "Password reset email sent successfully"}
     except Exception as e:
         return {"msg": "Failed to send email"}, 500
+
 
 @app.route('/api/changepassword', methods=['POST'])
 def reset_password():
@@ -189,29 +196,33 @@ def reset_password():
 
     # Check if the reset token exists in the database
     teacher = col_teachers.find_one({
-    "$and": [
-        {"reset_token": reset_token},
-        {"email": email}
-      ]
+        "$and": [
+            {"reset_token": reset_token},
+            {"email": email}
+        ]
     })
 
     if not teacher:
         return {"msg": "Invalid or expired reset token, or email does not match."}, 400
 
     # Update the password in the teacher's document
-    col_teachers.update_one({"_id": teacher["_id"]}, {"$set": {"password": bcrypt.generate_password_hash(new_password).decode('utf-8')}})
+    col_teachers.update_one({"_id": teacher["_id"]}, {"$set": {
+                            "password": bcrypt.generate_password_hash(new_password).decode('utf-8')}})
 
     # Clear the reset token
-    col_teachers.update_one({"_id": teacher["_id"]}, {"$unset": {"reset_token": ""}})
+    col_teachers.update_one({"_id": teacher["_id"]}, {
+                            "$unset": {"reset_token": ""}})
     access_token = create_access_token(identity=email)
-  
+
     return {"msg": "Password reset successful!", "access_token": access_token}, 200
+
 
 @app.route("/api/logout", methods=["POST"])
 def logout():
     response = jsonify({"msg": "logout successful"})
     unset_jwt_cookies(response)
     return response
+
 
 @app.route("/api/load/courses", methods=["GET"])
 @jwt_required()
@@ -234,12 +245,13 @@ def load_courses():
     courses = col_courses.find({"_id": {"$in": course_ids}})
 
     # Extract the course names
-    course_list = { "courses" : { course["name"] : [course["start_date"], course["end_date"]] for course in courses}}
+    course_list = {"courses": {course["name"]: [
+        course["start_date"], course["end_date"]] for course in courses}}
 
     # Return the list of course names as JSON
     return jsonify(course_list)
 
-# # Admin panel data route
+
 @app.route('/api/load/sentiment/overtime', methods=['POST'])
 @jwt_required()
 def get_sentiment_over_time():
@@ -249,11 +261,11 @@ def get_sentiment_over_time():
     end_date = request_data.get('formattedEndDate')
 
     if not course:
-        return {"error" : "Course not provided!"}, 200
+        return {"error": "Course not provided!"}, 200
     elif not start_date:
-        return {"error" : "Start date not provided!"}, 200
+        return {"error": "Start date not provided!"}, 200
     elif not end_date:
-        return {"error" : "End date not provided!"}, 200
+        return {"error": "End date not provided!"}, 200
 
     # Create a new dictionary for summarized data
     summarized_dataset = {}
@@ -261,7 +273,7 @@ def get_sentiment_over_time():
     # Parse start_date and end_date strings to datetime objects
     start_datetime = datetime.strptime(start_date, "%d/%m/%Y")
     end_datetime = datetime.strptime(end_date, "%d/%m/%Y")
-    
+
     # Get the data from the messages file, based on which course was parsed.
     dataset = process_json_file(f'../data/{course}/entries.json')
 
@@ -285,21 +297,23 @@ def get_sentiment_over_time():
             if start_and_end_equal:
                 # Add the timestamps with hours and minutes included.
                 summarized_timestamps[f"{truncated_timestamp}:00"] = sum(
-                count for timestamp, count in timestamps.items() if timestamp.startswith(truncated_timestamp))
+                    count for timestamp, count in timestamps.items() if timestamp.startswith(truncated_timestamp))
                 current_datetime += timedelta(hours=1)
             else:
                 # Add the timestamps with hours and minutes excluded.
                 summarized_timestamps[truncated_timestamp] = sum(
-                count for timestamp, count in timestamps.items() if timestamp.startswith(truncated_timestamp))
+                    count for timestamp, count in timestamps.items() if timestamp.startswith(truncated_timestamp))
                 current_datetime += timedelta(days=1)
 
         summarized_dataset[category] = summarized_timestamps
 
     # Calculate the sum for the "combined" category
-    combined_sum = sum(sum(summaries.values()) for summaries in summarized_dataset.values())
+    combined_sum = sum(sum(summaries.values())
+                       for summaries in summarized_dataset.values())
     summarized_dataset["combined"] = combined_sum
-  
+
     return summarized_dataset
+
 
 @app.route('/api/load/labels', methods=['POST', 'PUT'])
 @jwt_required()
@@ -308,27 +322,30 @@ def handle_labels():
     course = request_data.get('course')
 
     if not course:
-        return {"error" : "Course not provided!"}, 200
+        return {"error": "Course not provided!"}, 200
 
     save_path = f"../data/{course}/counter.json"
 
     if request.method == 'POST' and os.path.exists(save_path):
         counter = read_json(save_path)
-        if "english" in counter:  # Sanity check if the data retrieved is a properly formatted file. It should have a key of "English" in it.
+        # Sanity check if the data retrieved is a properly formatted file. It should have a key of "English" in it.
+        if "english" in counter:
             return jsonify(counter)
 
     # If method is PUT or the file doesn't exist, run the logic to generate and save new data
     student_path = f"../data/{course}/students.xlsx"
     teacher_path = f"../data/{course}/teachers.xlsx"
     message_path = f"../data/{course}/entries.json"
-    counters, _ = count_recurring.count_recurring(course, student_path, teacher_path, message_path, overwrite=True)
+    counters, _ = count_recurring.count_recurring(
+        course, student_path, teacher_path, message_path, overwrite=True)
     languages = ["english", "dutch"]
     message_types = ["positive", "negative", "additional", "combined"]
 
     # Use a nested dictionary comprehension to create the counter dictionary
     counter = {
         language: {
-            message_type: count_recurring.get_counter(language, message_type, counters, 5)
+            message_type: count_recurring.get_counter(
+                language, message_type, counters, 5)
             for message_type in message_types
         }
         for language in languages
@@ -348,21 +365,22 @@ def download_all_data():
 
     try:
         for course, entries in results.items():
-            save_path = f"../data/{course}/entries.json" # 8: to trim https://
+            save_path = f"../data/{course}/entries.json"  # 8: to trim https://
             file = Path(save_path)
             file.parent.mkdir(parents=True, exist_ok=True)
             store_json(save_path, entries)
 
-        return {"msg" : "Download complete."}
+        return {"msg": "Download complete."}
     except Exception as e:
-        return {"msg" : "Failed to download. Please try again later."}
+        return {"msg": "Failed to download. Please try again later."}
 
-# Admin panel data route
+
 @app.route('/api/load/sentiment', methods=['POST', 'PUT'])
 @jwt_required()
 def get_sentiment():
     overwrite = False
-    verbose = False  # Verbose is false for API call, can be set to True for debugging.
+    # Verbose is false for API call, can be set to True for debugging.
+    verbose = False
     arguments = request.get_json()
 
     # arguments["course"] is the course abbreviation, agruments["type"] is student/ai argument.
@@ -373,26 +391,29 @@ def get_sentiment():
         return {"error": "Course argument not provided."}, 200
 
     data_path = f"../data/{course}"
-    read_paths = [f"{data_path}/{path}" for path in ["students.xlsx", "teachers.xlsx", "entries.json"]]
-    store_paths = [f"{data_path}/{path}" for path in ["sentiment_student.json", "sentiment_ai.json", "accuracy.json"]]
+    read_paths = [f"{data_path}/{path}" for path in ["students.xlsx",
+                                                     "teachers.xlsx", "entries.json"]]
+    store_paths = [f"{data_path}/{path}" for path in [
+        "sentiment_student.json", "sentiment_ai.json", "accuracy.json"]]
 
     ai = True if sentiment_type == 'AI' and request.method == 'PUT' else False
     overwrite = True if request.method == 'PUT' else False
 
-    student_sentiment, ai_sentiment, accuracy, modify_date_student, modify_date_ai = sentiment_analysis.run_sentiment_analysis(course, read_paths, store_paths, ai, verbose, overwrite)
+    student_sentiment, ai_sentiment, accuracy, modify_date_student, modify_date_ai = sentiment_analysis.run_sentiment_analysis(
+        course, read_paths, store_paths, ai, verbose, overwrite)
 
     data = student_sentiment if sentiment_type == "Student" else ai_sentiment
 
     modify_date_student = format_human_readable_date(modify_date_student)
     modify_date_ai = format_human_readable_date(modify_date_ai)
 
-    return jsonify({"data" : data, "accuracy" : accuracy, "modify_date_student" : modify_date_student, "modify_date_ai" : modify_date_ai})
+    return jsonify({"data": data, "accuracy": accuracy, "modify_date_student": modify_date_student, "modify_date_ai": modify_date_ai})
+
 
 @app.route('/api/load/summary', methods=['POST', 'PUT'])
 @jwt_required()
 def get_summary():
     arguments = request.get_json()
-
 
     if arguments and "course" in arguments:
         course = arguments["course"]
@@ -400,11 +421,13 @@ def get_summary():
         store_path = f"../data/{course}/summary.json"
         overwrite = True if request.method == 'PUT' else False
 
-        summaries, modify_date = summary.run_truncated(read_path, store_path, overwrite=overwrite)
+        summaries, modify_date = summary.run_truncated(
+            read_path, store_path, overwrite=overwrite)
 
-        return {"data" : summaries, "modify_date" : format_human_readable_date(modify_date)}
+        return {"data": summaries, "modify_date": format_human_readable_date(modify_date)}
     else:
         return {"error": "Course argument not provided."}, 400
+
 
 if __name__ == '__main__':
     # app.run(ssl_context=('../.cert/cert.pem', '../.cert/key.pem'), debug=True, port=12345, host="0.0.0.0")

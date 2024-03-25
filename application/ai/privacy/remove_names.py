@@ -1,10 +1,10 @@
 import pandas as pd
 from fuzzywuzzy import fuzz
 from application.ai.setup.nltk_setup import nltk_setup
-from nltk.corpus import words
 
 def remove_names_from_message(message, names_list, verbose=False):
-    _, _, common_words_english = nltk_setup()  # TODO: make class instead, such that redownload is not always triggered.
+    # TODO: make class instead, such that redownload is not always triggered.
+    _, _, common_words_english = nltk_setup()
     cleaned_text = message.lower()
     result_tokens = cleaned_text.split()  # Split the text into tokens
 

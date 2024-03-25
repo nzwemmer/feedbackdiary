@@ -4,6 +4,7 @@ import pandas as pd
 import os
 from application.ai.privacy.remove_names import remove_names_from_message
 
+
 def read_text(path="data/text.txt"):
     lines = []
 
@@ -13,19 +14,18 @@ def read_text(path="data/text.txt"):
                 lines.append(line.strip())
     return lines
 
+
 def read_json_messages(course, student_path, teacher_path, message_path, overwrite=False, return_entries=False, verbose=False):
-    # For returning entries, we need to only filter out the unneccessary information but 
+    # For returning entries, we need to only filter out the unneccessary information but
     # we still want to compare sentiment for each of the entries, complete with pos/neg/add messages including parsed sentiment.
-    
-    data_dir = "/home/feedbackdiary/feedbackdiary/application/data"
-    
+
+    data_dir = f"{os.path.expanduser('~')}/feedbackdiary/application/data"
+
     if return_entries:
         read_path = os.path.join(data_dir, course, "messages_filtered.json")
-        # read_path = f"../data/{course}/messages_filtered.json"
     # The alternative here is for the counters. The counters only consider the exact pos/neg/add messages.
     else:
         read_path = os.path.join(data_dir, course, "messages_sorted.json")
-        # read_path = f"../data/{course}/messages_sorted.json"
 
     if os.path.exists(read_path) and not overwrite:
         if verbose:
@@ -61,11 +61,13 @@ def read_json_messages(course, student_path, teacher_path, message_path, overwri
         # Remove names from the messages.
         positive_message = remove_names_from_message(positive_message, names)
         negative_message = remove_names_from_message(negative_message, names)
-        additional_message = remove_names_from_message(additional_message, names)
+        additional_message = remove_names_from_message(
+            additional_message, names)
 
         # If a request to the reader was done for sentiment analysis, make sure it is stored for processing later.
         if return_entries:
-            entries_filtered.append({"positive" : positive_message, "negative" : negative_message, "additional" : additional_message, "sentiment" : sentiment})
+            entries_filtered.append({"positive": positive_message, "negative": negative_message,
+                                    "additional": additional_message, "sentiment": sentiment})
         else:
             # Append sentiment to its list of sentiments.
             sentiments.append(sentiment)
@@ -78,10 +80,10 @@ def read_json_messages(course, student_path, teacher_path, message_path, overwri
             additional_messages.append(additional_message)
 
     if return_entries:
-         # Save the output of the filtered entries separate to a file for sentiment analysis.
+        # Save the output of the filtered entries separate to a file for sentiment analysis.
         with open(read_path, 'w') as output_file:
             json.dump({
-                "entries" : entries_filtered
+                "entries": entries_filtered
             }, output_file)
         return read_json_full(read_path)
     else:
@@ -95,16 +97,19 @@ def read_json_messages(course, student_path, teacher_path, message_path, overwri
             }, output_file)
         return read_json_full(read_path)
 
+
 def read_json_full(path="../data/entries.json"):
     with open(path, 'r') as json_file:
         data = json.load(json_file)
     return data
 
+
 def extract_names_from_excel(excel_file_path='data/students.xlsx'):
     df = pd.read_excel(excel_file_path)
 
     if 'FirstName' in df.columns and 'LastName' in df.columns:
-        combined_names = (df['FirstName'] + ' ' + df['LastName']).str.lower().tolist()
+        combined_names = (df['FirstName'] + ' ' +
+                          df['LastName']).str.lower().tolist()
         return combined_names
     else:
         # TODO: Nice exception.

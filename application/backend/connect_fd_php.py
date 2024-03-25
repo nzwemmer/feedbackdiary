@@ -3,16 +3,19 @@ import os
 import requests
 
 fd_config = {
-    "urls": ["https://knp.feedbackdiary.nl/", "https://ssvt.feedbackdiary.nl/"],  # Add if other FD required.
+    # Add if other FD required.
+    "urls": ["https://knp.feedbackdiary.nl/", "https://ssvt.feedbackdiary.nl/"],
     "token": os.getenv("FD_TOKEN"),
     "password": os.getenv("FD_PASSWORD")
 }
 
 fd_config_v1_2 = {
-    "urls": ["https://pse.feedbackdiary.nl/"],  # Add if other FD required. Use only v3 version of FD.
+    # Add if other FD required. Use only v3 version of FD.
+    "urls": ["https://pse.feedbackdiary.nl/"],
     "user_token": os.getenv("FD_TOKEN"),
     "password": os.getenv("FD_PASSWORD_v1_2")
 }
+
 
 def process(base_url, version="latest"):
     # Create a session object to persist cookies
@@ -50,7 +53,8 @@ def process(base_url, version="latest"):
             except json.decoder.JSONDecodeError as json_err:
                 print(f"Error decoding JSON: {str(json_err)}")
         else:
-            print(f"Downloading JSON data failed with status code {download_response.status_code}")
+            print(
+                f"Downloading JSON data failed with status code {download_response.status_code}")
 
     except requests.exceptions.RequestException as e:
         print(f"An error occurred while downloading JSON data: {str(e)}")
@@ -70,6 +74,7 @@ def process(base_url, version="latest"):
         print(f"An error occurred during logout: {str(e)}")
 
     return None
+
 
 def download_entries():
     results = {}

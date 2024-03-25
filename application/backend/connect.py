@@ -11,10 +11,12 @@ uri = f"mongodb://{username}:{password}@localhost:27017"
 
 db_name = "feedbackdiary"
 
+
 def establish_connection():
     try:
         # Connect to the MongoDB server
-        client = MongoClient(uri, serverSelectionTimeoutMS=10, connectTimeoutMS=20000)
+        client = MongoClient(
+            uri, serverSelectionTimeoutMS=10, connectTimeoutMS=20000)
 
         # Select the database
         db = client[db_name]

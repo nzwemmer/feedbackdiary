@@ -1,6 +1,7 @@
 from transformers import pipeline
 from application.ai.utility.common import calculate_feedbackdiary_score
 
+
 def lxyuan(messages, device="cpu"):
     """
     Perform sentiment analysis using the LXYUAN model.
@@ -30,10 +31,12 @@ def lxyuan(messages, device="cpu"):
     scores = []
     for message in result:
         sentiment = message[0]['label']
-        score = message[0]['score'] * -1 if sentiment == "negative" else message[0]['score']
+        score = message[0]['score'] * - \
+            1 if sentiment == "negative" else message[0]['score']
         scores.append(calculate_feedbackdiary_score(score))
 
     return scores
+
 
 def nlptown(messages, device="cpu"):
     """
@@ -68,6 +71,7 @@ def nlptown(messages, device="cpu"):
 
     # Map sentiment labels to FD scale and return scores
     return [mapping[result['label']] for result in results]
+
 
 if __name__ == "__main__":
     # Test the lxyuan and nlptown functions with a placeholder message

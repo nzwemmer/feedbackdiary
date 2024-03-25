@@ -4,11 +4,14 @@ import numpy as np
 
 from langdetect import detect, LangDetectException
 
+
 def check_file_exists(file_path):
     return os.path.exists(file_path)
 
 # Function to detect the language of a message
 # https://www.nltk.org --> Detect names automatically.
+
+
 def detect_language(message):
     try:
         if not "_none" in message:
@@ -25,22 +28,27 @@ def detect_language(message):
     except LangDetectException:
         return "english"  # In case language detection fails, assume English.
 
+
 def create_filters(stop_words_en, stop_words_nl):
     # Remove custom values that we want to remove. sodm is a custom replacement for student names.
     custom_filter = ["sodm", "<", ">"]
 
     return set(stop_words_en + custom_filter), set(stop_words_nl + custom_filter)
 
+
 def sentiment_counter(sentiments):
-    sentiments_counter = {'very negative': 0, 'negative': 0, 'neutral': 0, 'positive': 0, 'very positive': 0}
+    sentiments_counter = {'very negative': 0, 'negative': 0,
+                          'neutral': 0, 'positive': 0, 'very positive': 0}
 
     for sentiment in sentiments:
         sentiments_counter[sentiment] += 1
 
     return sentiments_counter
 
+
 def sentiment_list_convert(sentiments):
-    mapping = {-2: "very negative", -1: "negative", 0: "neutral", 1: "positive", 2: "very positive", 99: "neutral"}
+    mapping = {-2: "very negative", -1: "negative", 0: "neutral",
+               1: "positive", 2: "very positive", 99: "neutral"}
     sentiment_labels = []
 
     # 1) Get sentiment label for numerical value.
@@ -53,6 +61,8 @@ def sentiment_list_convert(sentiments):
     return sentiment_labels
 
 # Function that maps scores to a certain sentiment.
+
+
 def calculate_feedbackdiary_score(score):
     if score <= -0.5:
         return "very negative"
@@ -65,9 +75,12 @@ def calculate_feedbackdiary_score(score):
     else:
         return "neutral"
 
+
 def sentiment_average(scores):
-    mapping = {"very positive": 2, "positive": 1, "neutral": 0, "negative": -1, "very negative": -2}
-    mapping_backwards = {2: "very positive", 1: "positive", 0: "neutral", -1: "negative", -2: "very negative"}
+    mapping = {"very positive": 2, "positive": 1,
+               "neutral": 0, "negative": -1, "very negative": -2}
+    mapping_backwards = {2: "very positive", 1: "positive",
+                         0: "neutral", -1: "negative", -2: "very negative"}
 
     score_values = np.array([mapping[score] for score in scores])
     rounded_average_score = round(np.mean(score_values))

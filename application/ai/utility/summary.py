@@ -6,6 +6,7 @@ from application.backend.common import *
 import torch
 import argparse
 
+
 def combine_category(messages):
     max_length = 1024
     summary_list = []
@@ -39,19 +40,22 @@ def combine_category(messages):
 
     return summary_list[0]
 
+
 def summarize(text, device=None, truncate=False):
-    # If no device or GPU was parsed, choose the best available option. 
+    # If no device or GPU was parsed, choose the best available option.
     # If GPU is unavailable, instead of crashing, it will resort to CPU.
     if not device or device == "gpu":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    summarizer = pipeline("text2text-generation", model="lxyuan/distilbart-finetuned-summarization", truncation=truncate, device=device)
+    summarizer = pipeline("text2text-generation",
+                          model="lxyuan/distilbart-finetuned-summarization", truncation=truncate, device=device)
     summary = summarizer(text)[0]['generated_text']
 
     return summary
 
+
 def run_truncated(message_path, store_path=None, device=None, overwrite=False):
-    
+
     if store_path:
         if os.path.exists(store_path) and not overwrite:
             summaries = read_json(store_path)
@@ -59,16 +63,17 @@ def run_truncated(message_path, store_path=None, device=None, overwrite=False):
             return summaries, modify_date
 
     messages = read_json_full(message_path)["entries"]
-    positive, negative, additional = zip(*[(message["positive"], message["negative"], message["additional"]) for message in messages])
+    positive, negative, additional = zip(
+        *[(message["positive"], message["negative"], message["additional"]) for message in messages])
 
     positive_string = "".join(positive)
     negative_string = "".join(negative)
     additional_string = "".join(additional)
 
     summaries = {
-        "positive_summary" : summarize(positive_string, device, truncate=True).replace("sodm", "REDACTED"),
-        "negative_summary" : summarize(negative_string, device, truncate=True).replace("sodm", "REDACTED"),
-        "additional_summary" : summarize(additional_string, device, truncate=True).replace("sodm", "REDACTED")
+        "positive_summary": summarize(positive_string, device, truncate=True).replace("sodm", "REDACTED"),
+        "negative_summary": summarize(negative_string, device, truncate=True).replace("sodm", "REDACTED"),
+        "additional_summary": summarize(additional_string, device, truncate=True).replace("sodm", "REDACTED")
     }
 
     if store_path:
@@ -79,10 +84,12 @@ def run_truncated(message_path, store_path=None, device=None, overwrite=False):
     else:
         return summaries
 
+
 def run_combined_messages(message_path):
     messages = read_json_full(message_path)["entries"]
 
-    positive, negative, additional = zip(*[(message["positive"], message["negative"], message["additional"]) for message in messages])
+    positive, negative, additional = zip(
+        *[(message["positive"], message["negative"], message["additional"]) for message in messages])
 
     print("Processed file. Running summarizer")
     print("Positive")
@@ -96,8 +103,10 @@ def run_combined_messages(message_path):
 if __name__ == "__main__":
     message_path = "../../data/PSE/messages_filtered.json"
 
-    parser = argparse.ArgumentParser(description="Run truncated function with specified arguments.")
-    parser.add_argument("--device", default="cpu", choices=["cpu", "gpu"], help="Specify the device (cpu/cuda)")
+    parser = argparse.ArgumentParser(
+        description="Run truncated function with specified arguments.")
+    parser.add_argument("--device", default="cpu",
+                        choices=["cpu", "gpu"], help="Specify the device (cpu/cuda)")
 
     args = parser.parse_args()
 
@@ -105,4 +114,4 @@ if __name__ == "__main__":
     run_truncated(message_path, "TEST.JSON", device=args.device)
 
     # Useful if truncated messages somehow do not create accurate enough results. Much slower however. Omitted for POC version.
-    # run_combined_messages(message_path) 
+    # run_combined_messages(message_path)
