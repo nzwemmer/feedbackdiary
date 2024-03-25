@@ -34,7 +34,7 @@ const Analysis = ({
           <CCardHeader>
             <CCardTitle>
               {" "}
-              Overall sentiment by students
+              Overall entry sentiment by students
               <CButton
                 color="danger"
                 className={`float-end${
