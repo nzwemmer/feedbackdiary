@@ -5,8 +5,8 @@ import { useNavigate, useLocation } from "react-router-dom"; // Add useLocation
 // Core UI icons
 
 // Local components and utilities
-import Summary from "src/components/sentiment/Summary";
-import WordCounter from "src/components/sentiment/WordCounter";
+import Summary from "src/components/summary/Summary";
+import WordCounter from "src/components/wordcounter/WordCounter";
 import createAxiosInstance from "src/api/axiosInstance";
 import useToken from "src/components/authentication/useToken";
 import Analysis from "src/components/sentiment/Analysis";

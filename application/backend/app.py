@@ -328,7 +328,7 @@ def handle_labels():
     # Use a nested dictionary comprehension to create the counter dictionary
     counter = {
         language: {
-            message_type: count_recurring.get_counter(language, message_type, counters, 12)
+            message_type: count_recurring.get_counter(language, message_type, counters, 5)
             for message_type in message_types
         }
         for language in languages
