@@ -1,63 +1,31 @@
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import os
 from application.ai.utility.reader import read_json_messages
 from application.ai.utility.fd_exceptions import *
 from application.ai.utility.common import *
+import application.ai.included.models as models_mod
+import application.ai.included.tools as tools_mod
+
 from application.backend.common import *
 from datetime import datetime
-
-from transformers import pipeline
-import numpy as np
 import torch
+import os
 
-def check_file_exists(file_path):
-    return os.path.exists(file_path)
+def get_callable_functions(module):
+    """
+    Retrieve callable functions defined directly within a module.
+    """
+    # Retrieve all attributes of the module
+    attributes = dir(module)
 
-def sentiment_convert(sentiment):
-    mapping = {'very negative': -2, 'negative': -1, 'neutral': 0, 'positive': 1, 'very positive': 2}
-    mapping_backwards = {-2: "very negative", -1: "negative", 0: "neutral", 1: "positive", 2: "very positive", 99: "neutral"}
+    # Filter out only the callable functions defined directly in the module
+    functions = [
+        name for name in attributes 
+        if callable(getattr(module, name)) and getattr(module, name).__module__ == module.__name__
+    ]
 
-    # Check if the input is an integer
-    if isinstance(sentiment, int):
-        return mapping_backwards.get(sentiment, None)
-    # Check if the input is a string
-    elif isinstance(sentiment, str):
-        return mapping.get(sentiment, None)
-    else:
-        return None
+    return functions
 
-# Function that maps scores to a certain sentiment.
-def calculate_feedbackdiary_score(score):
-    if score <= -0.5:
-        return "very negative"
-    elif score <= -0.05:
-        return "negative"
-    elif score >= 0.5:
-        return "very positive"
-    elif score >= 0.05:
-        return "positive"
-    else:
-        return "neutral"
-
-def calculate_feedbackdiary_accuracy_per_message(message_type, determined):
-    # Positive/negative message field filled in by student => Expected Positive/Negative.
-    # Read as "if negative in negative / very negative => return 100% accurate."
-    if message_type in determined:
-        return 1
-    # Additional message field filled in by student => probably Neutral, but could be any.
-    # Just less likely to be other than neutral, so score higher for neutral and lower for any other.
-    elif message_type == "additional":
-        if "neutral" in determined:
-            return 1
-        else:
-            return 0.5
-    # Example: positive message field by student, sentiment detected was negative or neutral.
-    else:
-        return False
-
-def calculate_feedbackdiary_accuracy(average, overall_sentiment):
-
+def entry_accuracy(student_provided, ai_determined):
     sentiment_mapping = {
         "very positive": {"very positive": 1, "positive": 0.75, "neutral": 0.25, "negative": 0, "very negative" : 0},
         "positive": {"very positive": 0.75, "positive": 1, "neutral": 0.75, "negative": 0.25, "very negative" : 0},
@@ -66,88 +34,78 @@ def calculate_feedbackdiary_accuracy(average, overall_sentiment):
         "very negative": {"very positive": 0, "positive": 0, "neutral": 0.25, "negative": 0.75, "very negative" : 1},
     }
 
-    return sentiment_mapping[average][overall_sentiment]
+    if len(student_provided) != len(ai_determined):
+        raise ValueError("Lists must have the same length")
+    
+    similarity_scores = []
+    for i in range(len(student_provided)):
+        score_matrix = sentiment_mapping[student_provided[i]]
+        similarity_score = score_matrix[ai_determined[i]]
+        similarity_scores.append(similarity_score)
+    
+    return similarity_scores
 
-def average_sentiment(scores):
-    mapping = {"very positive": 2, "positive": 1, "neutral": 0, "negative": -1, "very negative": -2}
-    mapping_backwards = {2: "very positive", 1: "positive", 0: "neutral", -1: "negative", -2: "very negative"}
+def comment_accuracy(comment_type, results):
+    accuracy = 0
+    max_accuracy = len(results) # 49 for positive for PSE dataset.
 
-    score_values = np.array([mapping[score] for score in scores])
-    rounded_average_score = round(np.mean(score_values))
+    sentiment_mapping = {
+        "positive": {"very positive": 1, "positive": 1, "neutral": 0.5, "negative": 0, "very negative" : 0},
+        "negative": {"very positive": 0, "positive": 0, "neutral": 0.5, "negative": 1, "very negative" : 1},
+        "additional": {"very positive": 0.5, "positive": 0.75, "neutral": 1, "negative": 0.75, "very negative" : 0.5},
+    }
 
-    return mapping_backwards[rounded_average_score]
+    for result in results:
+        accuracy += sentiment_mapping[comment_type][result]
 
-######################################################################### MODELS #########################################################################
-############## DistilBERT mulitlingual uncased Sentiment Analysis
-def distilbert_fd(message, device="cpu"):
-    model_path = f"/home/feedbackdiary/feedbackdiary/application/ai/models/nlptown/bert-base-multilingual-uncased-sentiment"
-
-    if check_file_exists(model_path):
-        # Load the tokenizer and model onto the GPU.
-        tokenizer = AutoTokenizer.from_pretrained(f"{model_path}/tokenizer")
-        model = AutoModelForSequenceClassification.from_pretrained(f"{model_path}/model").to(device)
+    if accuracy != 0:
+        return accuracy / max_accuracy
     else:
-        print("ERROR IN DISTILBERT MULTIL UNCASED SENTIMENT: MODEL DOES NOT EXIST!")
+        return 0
 
-    # Move inputs to GPU if available
-    inputs = tokenizer.encode_plus(message, add_special_tokens=True, return_tensors="pt").to(device)
-    outputs = model(**inputs)
+def run_application(app_type, comments, none_indices, num_pos, num_neg, device="cuda"):
+    results = []
+    apps = get_callable_functions(app_type)
+    accuracies = {}
 
-    # Move logits to CPU for further processing
-    logits = outputs.logits.detach().cpu()
-    predicted_class = logits.argmax().item()
+    # Check if GPU is available for models supporting it, and fall back to CPU
+    # If CUDA unavailable.
+    if device == "cuda":
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    sentiment_classes = ['very negative', 'negative', 'neutral', 'positive', 'very positive']
-    predicted_sentiment = sentiment_classes[predicted_class]
+    for app in apps:
+        function = getattr(app_type, app)
+        result = function(comments, device)
+        
+        pos_results = result[:num_pos]
+        pos_accuracy = comment_accuracy("positive", pos_results)
 
-    return predicted_sentiment
-############## DistilBERT mulitling Sentiment Analysis
-############## lxyuan/distilbert-base-multilingual-cased-sentiments-student ################
-def lxyuan_fd(message, device="cpu"):
-    distilled_student_sentiment_classifier = pipeline(
-        model="lxyuan/distilbert-base-multilingual-cased-sentiments-student", 
-        top_k=None,
-        device=device
-    )
+        neg_results = result[num_pos:num_pos+num_neg]
+        neg_accuracy = comment_accuracy("negative", neg_results)
+        
+        add_results = result[num_pos+num_neg:]
 
-    result = distilled_student_sentiment_classifier(message)[0][0]
+        # Replace "neutral" result for every 
+        # _none_ in the original additional messages list
+        for index in none_indices:
+            add_results[index] = "neutral"
 
-    if result['label'] == 'negative':
-        result['score'] *= -1
+        add_accuracy = comment_accuracy("additional", add_results)
 
-    result['fd_score'] = calculate_feedbackdiary_score(result['score'])
+        results.append(pos_results + neg_results + add_results)
 
-    return result
-############## lxyuan/distilbert-base-multilingual-cased-sentiments-student ################
-############## VADER ##############
-def vader_fd(message):
-    analyzer = SentimentIntensityAnalyzer()
+        accuracy = {"pos": pos_accuracy, "neg": neg_accuracy, "add" : add_accuracy}
+        accuracies[app] = accuracy
 
-    vs = analyzer.polarity_scores(message)
-    compound_score = vs['compound']
-    return {'score' : vs['compound'], "fd_score" : calculate_feedbackdiary_score(compound_score)}
-############## VADER ##############
+    return accuracies, results
 
 def run_sentiment_analysis(course, read_paths, store_paths, ai=False, verbose=False, overwrite=False):
-    # Check if GPU is available for models supporting it.
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if verbose:
+        print(f"Arguments parsed: ai={ai} overwrite={overwrite} course={course}")
 
+    # Get the paths for storing and retrieving the files.
     student_path, teacher_path, message_path = read_paths
     student_data_path, ai_data_path, accuracy_path = store_paths
-
-    # If overwrite was set to true (PUT request), re-filter all input messages for use with sentiment analysis. 
-    # If overwrite was set to false (POST request), do not re-filter and just read the files instead.
-    all_messages = read_json_messages(course, student_path, teacher_path, message_path, overwrite, return_entries=True)
-
-    # Used for storing the sentiments parsed by students and the AI.
-    student_sentiments = {'very negative': 0, 'negative': 0, 'neutral': 0, 'positive': 0, 'very positive': 0}
-    ai_sentiments = {'very negative': 0, 'negative': 0, 'neutral': 0, 'positive': 0, 'very positive': 0}
-
-    # List to keep all accuracies for each of the entries. Used for calculating the ultimate accuracy of the AI.
-    pos_accuracies = []
-    neg_accuracies = []
-    add_accuracies = []
-    entry_accuracies = []
 
     # If the files to store already exist, and overwrite is false, just return the file contents (POST request).
     # If overwrite is set to true, do not check if files exist and instead just overwrite their contents.
@@ -159,107 +117,114 @@ def run_sentiment_analysis(course, read_paths, store_paths, ai=False, verbose=Fa
 
             return read_json(student_data_path), read_json(ai_data_path), read_json(accuracy_path), modification_date_student, modification_date_ai
 
-    # Otherwise perform filtering of data using read_json_messages
-    if verbose:
-        print(f"Arguments parsed: ai={ai} overwrite={overwrite}")
+    # If overwrite was set to true (PUT request), re-filter all input messages for use with sentiment analysis. 
+    # If overwrite was set to false (POST request), do not re-filter and just read the files instead.
+    messages_read = read_json_messages(course, student_path, teacher_path, message_path, overwrite, return_entries=False)
+    student_entry_sentiment_numerical = messages_read['sentiment']
 
-    for entry in all_messages['entries']:
-        # Student provided sentiment for compare. Store for later comparison and accuracy calculation.
-        student_overall_sentiment_int = entry["sentiment"]
-        student_overall_sentiment_str = sentiment_convert(student_overall_sentiment_int)
-        student_sentiments[student_overall_sentiment_str] += 1
+    # Convert numerical values to string values.
+    student_entry_sentiment = sentiment_list_convert(student_entry_sentiment_numerical)
+    # Count the occurence of each value for comparison to AI, or return after.
+    student_entry_sentiment_counter = sentiment_counter(student_entry_sentiment)
 
-        if ai:
-            pos = entry["positive"]
-            neg = entry["negative"]
-            add = entry['additional']
-
-            # Perform sentiment analysis on each of the messages within an entry.
-            # The placeholder comment from the Diary Dashboard: '_none_' is omitted, saving on some computation time.
-            # I consider not providing a comment in the additional field, neutral sentiment. 
-            # Add it to each model results for normal computation afterwards.
-            if "_none_" in add:
-                # Add neutral as this influences the results in the least significant way.
-                # We expect that students leaving the field empty means they feel indifferent to this particular submission.
-                lxyuan =     [lxyuan_fd(pos, device)['fd_score'], lxyuan_fd(neg, device)['fd_score'], "neutral"]
-                distilbert = [distilbert_fd(pos, device), distilbert_fd(neg, device), "neutral"]
-                vader =      [vader_fd(pos)['fd_score'], vader_fd(neg)['fd_score'], "neutral"]
-            else:
-                lxyuan =     [lxyuan_fd(pos, device)['fd_score'], lxyuan_fd(neg, device)['fd_score'], lxyuan_fd(add, device)['fd_score']]
-                distilbert = [distilbert_fd(pos, device), distilbert_fd(neg, device), distilbert_fd(add, device)]
-                vader =      [vader_fd(pos)['fd_score'], vader_fd(neg)['fd_score'], vader_fd(add)['fd_score']]
-
-            # First calculate all averages for each type (positive, negative, additional) for all model results.
-            pos_average = average_sentiment([lxyuan[0], distilbert[0], vader[0]])
-            neg_average = average_sentiment([lxyuan[1], distilbert[1], vader[1]])
-            add_average = average_sentiment([lxyuan[2], distilbert[2], vader[2]])
-
-            # Secondly calculate accuracy of positive/negative/additional message detection based on the models parsed.
-            # NOTE: Students can misuse this by sending a negative message in the positive field or vice versa.
-            # Regardless, some considerations had to be made.
-            pos_accuracy = calculate_feedbackdiary_accuracy_per_message("positive", pos_average)
-            neg_accuracy = calculate_feedbackdiary_accuracy_per_message("negative", neg_average)
-            add_accuracy = calculate_feedbackdiary_accuracy_per_message("additional", add_average)
-
-            # Thirdly calculate the overall average of the previous types combined (so over the entire entry).
-            entry_average = average_sentiment([pos_average, neg_average, add_average])
-
-            ## Add to ai_sentiments result dict.
-            ai_sentiments[entry_average] += 1
-
-            # Fourthly calculate accuracy based on total average combined and the provided sentiment by the student themselves.
-            entry_accuracy = calculate_feedbackdiary_accuracy(entry_average, student_overall_sentiment_str)
-
-            pos_accuracies.append(pos_accuracy)
-            neg_accuracies.append(neg_accuracy)
-            add_accuracies.append(add_accuracy)
-            entry_accuracies.append(entry_accuracy)
-
-            # Legacy average calculation. Omit once ready.
-            # total_accuracy = ((pos_accuracy + neg_accuracy + add_accuracy) / 3) * 0.25 + entry_accuracy * 0.75
-
-            if verbose:
-                print("============================================================================================================")
-                print(f"Pos message: {pos[:4]} | AI: [{lxyuan[0]}], [{distilbert[0]}], [{vader[0]}] | Avg. Pos.: {pos_average} | ")
-                print(f"Neg message: {neg[:4]} | AI: [{lxyuan[1]}], [{distilbert[1]}], [{vader[1]}] | Avg. Neg.: {neg_average} | ")
-                print(f"Add message: {add[:4]} | AI: [{lxyuan[2]}], [{distilbert[2]}], [{vader[2]}] | Avg. Add.: {add_average} | ")
-                print("============================================================================================================")
-                print(f"Avg. Entry: {entry_average} | Student: {student_overall_sentiment_str} | Accuracy: {entry_accuracy} | ")
-
+    # If ai is true, perform actual sentiment analysis. Otherwise, just store and retrieve new results from students only.
     if ai:
-        average_pos_accuracy = sum(pos_accuracies) / len(pos_accuracies)
-        average_neg_accuracy = sum(neg_accuracies) / len(neg_accuracies)
-        average_add_accuracy = sum(add_accuracies) / len(add_accuracies)
-        average_entry_accuracy = sum(entry_accuracies) / len(entry_accuracies)
+        pos = messages_read["positive"]
+        num_pos = len(pos)
+        neg = messages_read["negative"]
+        num_neg = len(neg)
+        add = messages_read["additional"]
 
-    # If verbose was true and new files were generated, print the results to the terminal as well.
-    # Primarily used for debugging purposes.
-    if verbose:
-        print("ALL STUDENT SENTIMENTS: ")
-        for sentiment, score in student_sentiments.items():
-            print(f"Sentiment: {sentiment}; score: {score}")
+        # Adjust for _none_ in additional message:
+        # 1) Keep track of indices for _none_ in a list.
+        # 2) After parsing messages through model, replace their determined result for this list index with "neutral" sentiment.
+        none_indices = [index for index, none in enumerate(add) if none == "_none_"]
 
-        if ai:
-            print("ALL AI SENTIMENTS: ")
-            for sentiment, score in ai_sentiments.items():
-                print(f"Sentiment: {sentiment}; score: {score}")
+        # Combine positive, negative and additional comments together.
+        comments = pos + neg + add
 
-            print(f"Pos accuracy: {average_pos_accuracy}")
-            print(f"Neg accuracy: {average_neg_accuracy}")
-            print(f"Add accuracy: {average_add_accuracy}")
-            print(f"Entry accuracy: {average_entry_accuracy}")
+        # ai_sentiment_counter = {'very negative': 0, 'negative': 0, 'neutral': 0, 'positive': 0, 'very positive': 0}
+
+        model_accuracies, model_results = run_application(models_mod, comments, none_indices, num_pos, num_neg)
+        tool_accuracies, tool_results = run_application(tools_mod, comments, none_indices, num_pos, num_neg)
+
+        # Combine results from all models and tools => nested list of sentiments.
+        results = model_results + tool_results
+
+        # Calculate the average results from all models and tools => results in single list of sentiments.
+        averaged_result = [sentiment_average(scores) for scores in zip(*results)]
+        pos_results = averaged_result[:num_pos]
+        neg_results = averaged_result[num_pos:num_pos+num_neg]
+        add_results = averaged_result[num_pos+num_neg:]
+
+        # pos results are the results for each model and tool on the positive comment category.
+        # We perform element-wise averaging accross rows based on index.
+        # This results in a single list of the same length as each individual list.
+        # E.g.:
+        # Row 1:         [ 1,  2,  3,  4,  5]
+        # Row 2:         [ 6,  7,  8,  9, 10]
+        # Row 3:         [11, 12, 13, 14, 15]
+        # Resulting Row: [ 6,  7,  8,  9, 10]
+        average_positive_comment_accuracy = comment_accuracy('positive', pos_results)
+        average_negative_comment_accuracy = comment_accuracy('negative', neg_results)
+        average_additional_comment_accuracy = comment_accuracy('additional', add_results)
+
+        if verbose:
+            print("Per-model accuracy")
+            for model, accuracy in model_accuracies.items():
+                print(f"{model}: {accuracy}")
+
+            for tool, accuracy in tool_accuracies.items():
+                print(f"{tool}: {accuracy}")
+
+            print("Student sentiments provided:")
+            print(student_entry_sentiment)
+
+        # Get the sentiment for each entry based on the positive, negative and additional messages combined.
+        ai_entry_sentiment = [sentiment_average(scores) for scores in zip(*[pos_results, neg_results, add_results])]
+        
+        if verbose:
+            print("AI determined sentiments:")
+            print(f"POS: {pos_results}   | Weighted accuracy: {average_positive_comment_accuracy}")
+            print(f"NEG: {neg_results}   | Weighted accuracy: {average_negative_comment_accuracy}")
+            print(f"ADD: {add_results}   | Weighted accuracy: {average_additional_comment_accuracy}")
+            print(f"AVG: {ai_entry_sentiment}")
+
+        # Adjusted add_results for added "neutral" for each _none_ in the original message (student did not fill in field)
+        entry_accuracies = entry_accuracy(student_entry_sentiment, ai_entry_sentiment)
+        average_entry_accuracy = np.mean(entry_accuracies)
+
+        # Create sentiment counter for AI determined sentiment.
+        ai_entry_sentiment_counter = sentiment_counter(ai_entry_sentiment)
+
+        store_json(ai_data_path, ai_entry_sentiment_counter)
+        total_accuracy = {"models": model_accuracies, "tools": tool_accuracies, "pos" : average_positive_comment_accuracy, "neg" : average_negative_comment_accuracy, "add" : average_additional_comment_accuracy, "entry" : average_entry_accuracy}
+        store_json(accuracy_path, total_accuracy)
 
     # Always store student results.
-    store_json(student_data_path, student_sentiments)
+    store_json(student_data_path, student_entry_sentiment_counter)
 
-    # Store AI results if ai argument was parsed. Alternatively, only student results should be stored.
-    if ai:
-        store_json(ai_data_path, ai_sentiments)
-
-        total_accuracy = {"pos" : average_pos_accuracy, "neg" : average_neg_accuracy, "add" : average_add_accuracy, "entry" : average_entry_accuracy}
-        store_json(accuracy_path, total_accuracy)
 
     # After storing all results, read them from the files and return them.
     modification_date_student = datetime.fromtimestamp(os.path.getmtime(student_data_path))
     modification_date_ai = datetime.fromtimestamp(os.path.getmtime(ai_data_path))
     return read_json(student_data_path), read_json(ai_data_path), read_json(accuracy_path), modification_date_student, modification_date_ai
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run sentiment analysis script")
+    
+    parser.add_argument("--course", type=str, default="SSVT", help="Course name")
+    parser.add_argument("--ai", action="store_true", default=True, help="Enable AI")
+    parser.add_argument("--verbose", action="store_true", default=True, help="Enable verbose mode")
+    parser.add_argument("--overwrite", action="store_true", default=True, help="Overwrite existing files")
+    
+    args = parser.parse_args()
+    
+    # Get home folder and then append required file structure from there.
+    data_path = f"{os.path.expanduser('~')}/feedbackdiary/application/data/{args.course}"
+    read_paths = [f"{data_path}/{path}" for path in ["students.xlsx", "teachers.xlsx", "entries.json"]]
+    store_paths = [f"{data_path}/{path}" for path in ["sentiment_student.json", "sentiment_ai.json", "accuracy.json"]]
+    
+    run_sentiment_analysis(args.course, read_paths, store_paths, args.ai, args.verbose, args.overwrite)

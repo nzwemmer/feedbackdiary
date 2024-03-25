@@ -1,35 +1,16 @@
 import React, { useState, useEffect } from "react";
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useNavigate, useLocation } from "react-router-dom"; // Add useLocation
 
-// Third-party libraries
-import {
-  CButton,
-  CButtonGroup,
-  CCard,
-  CCardBody,
-  CCardHeader,
-  CCardSubtitle,
-  CCardTitle,
-  CCol,
-  CRow,
-  CSpinner,
-} from "@coreui/react";
-
 // Core UI icons
-import CIcon from "@coreui/icons-react";
-
-import { cilReload } from "@coreui/icons";
 
 // Local components and utilities
-import RadarChart from "src/components/sentiment/RadarChart";
-import Statistics from "src/components/sentiment/Statistics";
-import BarChart from "src/components/sentiment/BarChart";
 import Summary from "src/components/sentiment/Summary";
 import WordCounter from "src/components/sentiment/WordCounter";
 import createAxiosInstance from "src/api/axiosInstance";
 import useToken from "src/components/authentication/useToken";
+import Analysis from "src/components/sentiment/Analysis";
+import OverTime from "src/components/sentiment/OverTime";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -314,68 +295,21 @@ const Dashboard = () => {
 
   return (
     <>
-      <CRow>
-        <CCol xs={12}>
-          <CCard className="mb-4">
-            <CCardHeader>
-              <CCardTitle>Sentiment over time for {selectedCourse}</CCardTitle>
-              <CCardSubtitle>
-                {loadingChart ? (
-                  <p>Loading ...</p>
-                ) : (
-                  <p>Total entries for this range: {chartData["combined"]} </p>
-                )}
-              </CCardSubtitle>
-            </CCardHeader>
-            <CCardBody>
-              <CCol sm={8} className="d-none d-md-block">
-                <CButton
-                  color="primary"
-                  className="float-end"
-                  onClick={() =>
-                    fetchDataPost("/api/download/entries", setLoadingChart)
-                  }
-                >
-                  <CIcon icon={cilReload} />
-                </CButton>
-                <CButtonGroup className="float-end me-3">
-                  {["Today", "This Week", "This Month", "This Course"].map(
-                    (value) => (
-                      <CButton
-                        color="outline-secondary"
-                        key={value}
-                        className="mx-0"
-                        active={timeFrame === value}
-                        onClick={() => setTimeFrame(value)} // Update the timeFrame state on button click
-                      >
-                        {value}
-                      </CButton>
-                    )
-                  )}
-                </CButtonGroup>
-              </CCol>
-              <CCol sm={12}>
-                <DatePicker
-                  selected={startDate}
-                  startDate={startDate}
-                  endDate={endDate}
-                  onChange={handleDateChange}
-                  selectsRange
-                  // inline NOTE: Can be used to have a calendar always visible.
-                  dateFormat="dd/MM/yyyy"
-                  onFocus={resetTimeFrame}
-                />
-                <div className="small text-medium-emphasis"></div>
-              </CCol>
-              <BarChart
-                chartLabels={chartLabels}
-                chartData={chartData}
-                loadingChart={loadingChart}
-              />
-            </CCardBody>
-          </CCard>
-        </CCol>
-      </CRow>
+      <OverTime
+        loadingChart={loadingChart}
+        chartData={chartData}
+        timeFrame={timeFrame}
+        setTimeFrame={setTimeFrame}
+        setLoadingChart={setLoadingChart}
+        startDate={startDate}
+        endDate={endDate}
+        chartLabels={chartLabels}
+        handleDateChange={handleDateChange}
+        resetTimeFrame={resetTimeFrame}
+        fetchDataPost={fetchDataPost}
+        selectedCourse={selectedCourse}
+      />
+
       <Summary
         loadingSummary={loadingSummary}
         setLoadingSummary={setLoadingSummary}
@@ -384,104 +318,22 @@ const Dashboard = () => {
         fetchDataUpdate={fetchDataUpdate}
         selectedCourse={selectedCourse}
       />
+
       <div style={{ marginTop: `2%` }}></div>
-      <CRow>
-        <CCol xs={6}>
-          <CCard className="mb-4">
-            <CCardHeader>
-              <CCardTitle>
-                {" "}
-                Overall sentiment by students
-                <CButton
-                  color="danger"
-                  className={`float-end${
-                    loadingRadarChartStudent ? " disabled" : ""
-                  }`}
-                  onClick={() =>
-                    fetchDataUpdate(
-                      "/api/load/sentiment",
-                      setLoadingRadarChartStudent,
-                      setRadarChartDataStudent,
-                      { type: "Student", course: selectedCourse }
-                    )
-                  }
-                >
-                  <CIcon icon={cilReload} />
-                </CButton>
-              </CCardTitle>
-              <CCardSubtitle>
-                {loadingRadarChartStudent ? (
-                  <>Filtering data... calculating...</>
-                ) : (
-                  <>Last run: {radarChartStudentData["modify_date_student"]}</>
-                )}
-              </CCardSubtitle>
-            </CCardHeader>
-            <CCardBody>
-              {loadingRadarChartStudent ? (
-                <div className="d-flex align-items-center">
-                  <strong role="status">This might take a while...</strong>
-                  <CSpinner className="ms-auto" />
-                </div>
-              ) : (
-                <RadarChart radarChartDataFetched={radarChartStudentData} />
-              )}
-            </CCardBody>
-          </CCard>
-        </CCol>
 
-        <CCol xs={6}>
-          <CCard className="mb-4">
-            <CCardHeader>
-              <CCardTitle>
-                {" "}
-                Sentiment Analysis results by A.I.
-                <CButton
-                  color="danger"
-                  className={`float-end${
-                    loadingRadarChartAI ? " disabled" : ""
-                  }`}
-                  onClick={() =>
-                    fetchDataUpdate(
-                      "/api/load/sentiment",
-                      setLoadingRadarChartAI,
-                      setRadarChartDataAI,
-                      { type: "AI", course: selectedCourse }
-                    )
-                  }
-                >
-                  <CIcon icon={cilReload} />
-                </CButton>
-              </CCardTitle>
-              <CCardSubtitle>
-                {loadingRadarChartAI ? (
-                  <>Performing sentiment analysis...</>
-                ) : (
-                  <>Last run: {radarChartAIData["modify_date_ai"]}</>
-                )}
-              </CCardSubtitle>
-            </CCardHeader>
+      <Analysis
+        loadingRadarChartAI={loadingRadarChartAI}
+        loadingRadarChartStudent={loadingRadarChartStudent}
+        radarChartAIData={radarChartAIData}
+        radarChartStudentData={radarChartStudentData}
+        fetchDataUpdate={fetchDataUpdate}
+        selectedCourse={selectedCourse}
+        setLoadingRadarChartAI={setLoadingRadarChartAI}
+        setLoadingRadarChartStudent={setLoadingRadarChartStudent}
+        setRadarChartDataStudent={setRadarChartDataStudent}
+        setRadarChartDataAI={setRadarChartDataAI}
+      />
 
-            <CCardBody>
-              {loadingRadarChartAI ? (
-                // Display a loading message while data is being fetched
-                <div className="d-flex align-items-center">
-                  <strong role="status">This might take a while...</strong>
-                  <CSpinner className="ms-auto" />
-                </div>
-              ) : (
-                <RadarChart radarChartDataFetched={radarChartAIData} />
-              )}
-            </CCardBody>
-          </CCard>
-        </CCol>
-
-        <Statistics
-          loadingRadarChartAI={loadingRadarChartAI}
-          radarChartStudentData={radarChartStudentData}
-          radarChartAIData={radarChartAIData}
-        />
-      </CRow>
       <WordCounter
         loadingWords={loadingWords}
         setLoadingWords={setLoadingWords}
@@ -491,7 +343,9 @@ const Dashboard = () => {
         selectedCourse={selectedCourse}
         language="dutch"
       />
+
       <div style={{ marginTop: `2%` }}></div>
+
       <WordCounter
         loadingWords={loadingWords}
         setLoadingWords={setLoadingWords}

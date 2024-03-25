@@ -393,13 +393,14 @@ def get_sentiment():
 def get_summary():
     arguments = request.get_json()
 
+
     if arguments and "course" in arguments:
         course = arguments["course"]
         read_path = f"../data/{course}/messages_filtered.json"
         store_path = f"../data/{course}/summary.json"
         overwrite = True if request.method == 'PUT' else False
-        
-        summaries, modify_date = summary.run_truncated(read_path, store_path, overwrite)
+
+        summaries, modify_date = summary.run_truncated(read_path, store_path, overwrite=overwrite)
 
         return {"data" : summaries, "modify_date" : format_human_readable_date(modify_date)}
     else:

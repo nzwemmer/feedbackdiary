@@ -35,10 +35,13 @@ def count_recurring(course, student_path, teacher_path, messages_path, verbose=F
 
     for message_type, messages in all_messages.items():  # Positive, negative, additional
 
+        # We dont use the 'sentiment' in counting words.
         if message_type == "sentiment":
             continue
 
         for message in messages:
+            if "_none" in message:
+                continue
             try:
                 language = common.detect_language(message)
                 # Select filter and counters based on language and message type.

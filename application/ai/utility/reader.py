@@ -16,11 +16,16 @@ def read_text(path="data/text.txt"):
 def read_json_messages(course, student_path, teacher_path, message_path, overwrite=False, return_entries=False, verbose=False):
     # For returning entries, we need to only filter out the unneccessary information but 
     # we still want to compare sentiment for each of the entries, complete with pos/neg/add messages including parsed sentiment.
+    
+    data_dir = "/home/feedbackdiary/feedbackdiary/application/data"
+    
     if return_entries:
-        read_path = f"../data/{course}/messages_filtered.json"
+        read_path = os.path.join(data_dir, course, "messages_filtered.json")
+        # read_path = f"../data/{course}/messages_filtered.json"
     # The alternative here is for the counters. The counters only consider the exact pos/neg/add messages.
     else:
-        read_path = f"../data/{course}/messages_sorted.json"
+        read_path = os.path.join(data_dir, course, "messages_sorted.json")
+        # read_path = f"../data/{course}/messages_sorted.json"
 
     if os.path.exists(read_path) and not overwrite:
         if verbose:
@@ -69,11 +74,11 @@ def read_json_messages(course, student_path, teacher_path, message_path, overwri
             positive_messages.append(positive_message)
             negative_messages.append(negative_message)
 
-            if "_none" not in additional_message:
-                additional_messages.append(additional_message)
+            # if "_none" not in additional_message:
+            additional_messages.append(additional_message)
 
     if return_entries:
-         # Save the output of a the filtered entries separate to a file for sentiment analysis.
+         # Save the output of the filtered entries separate to a file for sentiment analysis.
         with open(read_path, 'w') as output_file:
             json.dump({
                 "entries" : entries_filtered
