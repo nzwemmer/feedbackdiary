@@ -5,8 +5,6 @@ from application.ai.utility.reader import read_json_messages
 from application.ai.utility.fd_exceptions import *
 
 from collections import Counter
-# from detection.detect_names import detect_names_nltk, detect_names_spacy ---> Using hardcoded names for now. Better success.
-
 
 def count_recurring(course, student_path, teacher_path, messages_path, verbose=False, overwrite=False):
     all_messages = read_json_messages(

@@ -204,7 +204,7 @@ def run_sentiment_analysis(course, read_paths, store_paths, ai=False, verbose=Fa
             *[pos_results, neg_results, add_results])]
 
         if verbose:
-            print("AI determined sentiments:")
+            print("Framework determined sentiments:")
             print(
                 f"POS: {pos_results}   | Weighted accuracy: {average_positive_comment_accuracy}")
             print(

@@ -30,9 +30,9 @@ const ToolAccuracy = ({ sa, loadingRadarChartAI }) => {
           ) : (
             <>
               <CCardText>
-                Accuracy for each SA tool on positive, negative, and additional
-                comment categories. This means all comments for each category,
-                determined correctly by each tool.
+                Weighted Accuracy for each SA tool on positive, negative, and
+                additional comment categories. This means all comments for each
+                category, determined correctly by each tool.
               </CCardText>
               <CRow>
                 <CCol xs={3}>

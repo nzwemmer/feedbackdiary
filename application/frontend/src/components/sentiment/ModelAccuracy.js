@@ -30,9 +30,9 @@ const ModelAccuracy = ({ sa, loadingRadarChartAI }) => {
           ) : (
             <>
               <CCardText>
-                Accuracy for each SA model on positive, negative, and additional
-                comment categories. This means all comments for each category,
-                determined correctly by each model.
+                Weighted Accuracy for each SA model on positive, negative, and
+                additional comment categories. This means all comments for each
+                category, determined correctly by each model.
               </CCardText>
               <CRow>
                 <CCol xs={3}>

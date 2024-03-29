@@ -61,8 +61,6 @@ def sentiment_list_convert(sentiments):
     return sentiment_labels
 
 # Function that maps scores to a certain sentiment.
-
-
 def calculate_feedbackdiary_score(score):
     if score <= -0.5:
         return "very negative"

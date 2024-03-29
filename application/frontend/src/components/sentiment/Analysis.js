@@ -29,71 +29,11 @@ const Analysis = ({
 }) => {
   return (
     <CRow>
-      <CCol xs={6}>
+      <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
-            <CCardTitle>
-              {" "}
-              Overall entry sentiment by students
-              <CButton
-                color="danger"
-                className={`float-end${
-                  loadingRadarChartStudent ? " disabled" : ""
-                }`}
-                onClick={() =>
-                  fetchDataUpdate(
-                    "/api/load/sentiment",
-                    setLoadingRadarChartStudent,
-                    setRadarChartDataStudent,
-                    { type: "Student", course: selectedCourse }
-                  )
-                }
-              >
-                <CIcon icon={cilReload} />
-              </CButton>
-            </CCardTitle>
-            <CCardSubtitle>
-              {loadingRadarChartStudent ? (
-                <>Filtering data... calculating...</>
-              ) : (
-                <>Last run: {radarChartStudentData["modify_date_student"]}</>
-              )}
-            </CCardSubtitle>
-          </CCardHeader>
-          <CCardBody>
-            {loadingRadarChartStudent ? (
-              <div className="d-flex align-items-center">
-                <strong role="status">This might take a while...</strong>
-                <CSpinner className="ms-auto" />
-              </div>
-            ) : (
-              <RadarChart radarChartDataFetched={radarChartStudentData} />
-            )}
-          </CCardBody>
-        </CCard>
-      </CCol>
+            <CCardTitle>Sentiment Analysis visualization</CCardTitle>
 
-      <CCol xs={6}>
-        <CCard className="mb-4">
-          <CCardHeader>
-            <CCardTitle>
-              {" "}
-              Sentiment Analysis results by A.I.
-              <CButton
-                color="danger"
-                className={`float-end${loadingRadarChartAI ? " disabled" : ""}`}
-                onClick={() =>
-                  fetchDataUpdate(
-                    "/api/load/sentiment",
-                    setLoadingRadarChartAI,
-                    setRadarChartDataAI,
-                    { type: "AI", course: selectedCourse }
-                  )
-                }
-              >
-                <CIcon icon={cilReload} />
-              </CButton>
-            </CCardTitle>
             <CCardSubtitle>
               {loadingRadarChartAI ? (
                 <>Performing sentiment analysis...</>
@@ -104,19 +44,92 @@ const Analysis = ({
           </CCardHeader>
 
           <CCardBody>
-            {loadingRadarChartAI ? (
-              // Display a loading message while data is being fetched
-              <div className="d-flex align-items-center">
-                <strong role="status">This might take a while...</strong>
-                <CSpinner className="ms-auto" />
-              </div>
-            ) : (
-              <RadarChart radarChartDataFetched={radarChartAIData} />
-            )}
+            <CRow>
+              <CCol xs={6}>
+                <CCard className="mb-4">
+                  <CCardHeader>
+                    <CCardTitle>
+                      {" "}
+                      Overall entry sentiment by students
+                      <CButton
+                        color="danger"
+                        className={`float-end${
+                          loadingRadarChartStudent ? " disabled" : ""
+                        }`}
+                        onClick={() =>
+                          fetchDataUpdate(
+                            "/api/load/sentiment",
+                            setLoadingRadarChartStudent,
+                            setRadarChartDataStudent,
+                            { type: "Student", course: selectedCourse }
+                          )
+                        }
+                      >
+                        <CIcon icon={cilReload} />
+                      </CButton>
+                    </CCardTitle>
+                  </CCardHeader>
+                  <CCardBody>
+                    {loadingRadarChartStudent ? (
+                      <div className="d-flex align-items-center">
+                        <strong role="status">
+                          This might take a while...
+                        </strong>
+                        <CSpinner className="ms-auto" />
+                      </div>
+                    ) : (
+                      <RadarChart
+                        radarChartDataFetched={radarChartStudentData}
+                      />
+                    )}
+                  </CCardBody>
+                </CCard>
+              </CCol>
+
+              <CCol xs={6}>
+                <CCard className="mb-4">
+                  <CCardHeader>
+                    <CCardTitle>
+                      {" "}
+                      Sentiment Analysis results by A.I.
+                      <CButton
+                        color="danger"
+                        className={`float-end${
+                          loadingRadarChartAI ? " disabled" : ""
+                        }`}
+                        onClick={() =>
+                          fetchDataUpdate(
+                            "/api/load/sentiment",
+                            setLoadingRadarChartAI,
+                            setRadarChartDataAI,
+                            { type: "AI", course: selectedCourse }
+                          )
+                        }
+                      >
+                        <CIcon icon={cilReload} />
+                      </CButton>
+                    </CCardTitle>
+                  </CCardHeader>
+
+                  <CCardBody>
+                    {loadingRadarChartAI ? (
+                      // Display a loading message while data is being fetched
+                      <div className="d-flex align-items-center">
+                        <strong role="status">
+                          This might take a while...
+                        </strong>
+                        <CSpinner className="ms-auto" />
+                      </div>
+                    ) : (
+                      <RadarChart radarChartDataFetched={radarChartAIData} />
+                    )}
+                  </CCardBody>
+                </CCard>
+              </CCol>
+            </CRow>
           </CCardBody>
         </CCard>
       </CCol>
-
       <Statistics
         loadingRadarChartAI={loadingRadarChartAI}
         radarChartStudentData={radarChartStudentData}
