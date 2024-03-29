@@ -105,10 +105,10 @@ def run_application(app_type, comments, none_indices, num_pos, num_neg, device="
     return accuracies, results
 
 
-def run_sentiment_analysis(course, read_paths, store_paths, ai=False, verbose=False, overwrite=False):
+def run_sentiment_analysis(course, read_paths, store_paths, ai=False, verbose=False, overwrite=False, device="cuda"):
     if verbose:
         print(
-            f"Arguments parsed: ai={ai} overwrite={overwrite} course={course}")
+            f"Arguments parsed: ai={ai} overwrite={overwrite} course={course} device={device}")
 
     # Get the paths for storing and retrieving the files.
     student_path, teacher_path, message_path = read_paths
@@ -159,9 +159,9 @@ def run_sentiment_analysis(course, read_paths, store_paths, ai=False, verbose=Fa
         # ai_sentiment_counter = {'very negative': 0, 'negative': 0, 'neutral': 0, 'positive': 0, 'very positive': 0}
 
         model_accuracies, model_results = run_application(
-            models_mod, comments, none_indices, num_pos, num_neg)
+            models_mod, comments, none_indices, num_pos, num_neg, device)
         tool_accuracies, tool_results = run_application(
-            tools_mod, comments, none_indices, num_pos, num_neg)
+            tools_mod, comments, none_indices, num_pos, num_neg, device)
 
         # Combine results from all models and tools => nested list of sentiments.
         results = model_results + tool_results
@@ -251,6 +251,8 @@ if __name__ == "__main__":
                         default=True, help="Enable verbose mode")
     parser.add_argument("--overwrite", action="store_true",
                         default=True, help="Overwrite existing files")
+    parser.add_argument("--cpu", action="store_true",
+                        default=False, help="Use CPU instead of CUDA")
 
     args = parser.parse_args()
 
@@ -261,5 +263,7 @@ if __name__ == "__main__":
     store_paths = [f"{data_path}/{path}" for path in [
         "sentiment_student.json", "sentiment_ai.json", "accuracy.json"]]
 
+    device = "cpu" if args.cpu else "cuda"
+
     run_sentiment_analysis(args.course, read_paths,
-                           store_paths, args.ai, args.verbose, args.overwrite)
+                           store_paths, args.ai, args.verbose, args.overwrite, device)
