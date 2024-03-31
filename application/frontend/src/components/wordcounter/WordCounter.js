@@ -96,7 +96,7 @@ const WordCounter = ({
         <CCard>
           <CCardHeader>
             <CCardTitle>
-              {capitalizeFirstLetter(language)} Frequent word counter
+              {capitalizeFirstLetter(language)} Frequent Word Counter
               <CButton
                 color="primary"
                 className={`float-end${loadingWords ? " disabled" : ""}`}

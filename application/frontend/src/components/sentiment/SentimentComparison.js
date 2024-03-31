@@ -17,9 +17,7 @@ const SentimentComparison = ({ student, ai, loadingRadarChartAI }) => {
     <CCol xs={6}>
       <CCard className="mb-4">
         <CCardHeader>
-          <CCardTitle>
-            Student Provided vs A.I. Determined Sentiments
-          </CCardTitle>
+          <CCardTitle>Overall Entry Sentiment Comparison</CCardTitle>
         </CCardHeader>
 
         <CCardBody>
@@ -32,8 +30,8 @@ const SentimentComparison = ({ student, ai, loadingRadarChartAI }) => {
           ) : (
             <>
               <CCardText>
-                Student provided overall sentiment per diary entry, compared to
-                A.I. determined sentiment per diary entry.
+                Student provided Overall Entry Sentiment, compared to Framework
+                determined Overall Entry Sentiment.
               </CCardText>
               <CRow>
                 <CCol xs={4}>
@@ -50,24 +48,40 @@ const SentimentComparison = ({ student, ai, loadingRadarChartAI }) => {
                   <CListGroup>
                     <CListGroupItem>Student</CListGroupItem>
                     <CListGroupItem>
-                      {student.data["very positive"]}
+                      {student.data && student.data["very positive"]}
                     </CListGroupItem>
-                    <CListGroupItem>{student.data["positive"]}</CListGroupItem>
-                    <CListGroupItem>{student.data["neutral"]}</CListGroupItem>
-                    <CListGroupItem>{student.data["negative"]}</CListGroupItem>
                     <CListGroupItem>
-                      {student.data["very negative"]}
+                      {student.data && student.data["positive"]}
+                    </CListGroupItem>
+                    <CListGroupItem>
+                      {student.data && student.data["neutral"]}
+                    </CListGroupItem>
+                    <CListGroupItem>
+                      {student.data && student.data["negative"]}
+                    </CListGroupItem>
+                    <CListGroupItem>
+                      {student.data && student.data["very negative"]}
                     </CListGroupItem>
                   </CListGroup>
                 </CCol>
                 <CCol xs={4}>
                   <CListGroup>
-                    <CListGroupItem>A.I.</CListGroupItem>
-                    <CListGroupItem>{ai.data["very positive"]}</CListGroupItem>
-                    <CListGroupItem>{ai.data["positive"]}</CListGroupItem>
-                    <CListGroupItem>{ai.data["neutral"]}</CListGroupItem>
-                    <CListGroupItem>{ai.data["negative"]}</CListGroupItem>
-                    <CListGroupItem>{ai.data["very negative"]}</CListGroupItem>
+                    <CListGroupItem>Framework</CListGroupItem>
+                    <CListGroupItem>
+                      {ai.data && ai.data["very positive"]}
+                    </CListGroupItem>
+                    <CListGroupItem>
+                      {ai.data && ai.data["positive"]}
+                    </CListGroupItem>
+                    <CListGroupItem>
+                      {ai.data && ai.data["neutral"]}
+                    </CListGroupItem>
+                    <CListGroupItem>
+                      {ai.data && ai.data["negative"]}
+                    </CListGroupItem>
+                    <CListGroupItem>
+                      {ai.data && ai.data["very negative"]}
+                    </CListGroupItem>
                   </CListGroup>
                 </CCol>
               </CRow>

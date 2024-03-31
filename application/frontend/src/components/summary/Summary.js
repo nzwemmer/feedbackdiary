@@ -5,6 +5,7 @@ import {
   CCard,
   CCardHeader,
   CCardBody,
+  CCardText,
   CCardTitle,
   CCardSubtitle,
   CSpinner,
@@ -36,7 +37,7 @@ const Summary = ({
           <CCardHeader>
             <CCardTitle>
               {" "}
-              A.I. Overall summary per sentiment
+              Summary
               <CButton
                 color="primary"
                 className={`float-end${loadingSummary ? " disabled" : ""}`}
@@ -63,6 +64,9 @@ const Summary = ({
             </CCardSubtitle>
           </CCardHeader>
           <CCardBody>
+            <CCardText>
+              Framework Generated Summary per comment category.
+            </CCardText>
             <CRow>
               <CCol xs={12}>
                 {["positive", "negative", "additional"].map(

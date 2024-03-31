@@ -33,6 +33,9 @@ import useToken from "src/components/authentication/useToken";
 import { useEffect } from "react";
 import createAxiosInstance from "src/api/axiosInstance";
 import logo from "src/assets/brand/logo.png";
+import CourseSelect from "src/components/authentication/CourseSelect";
+import SignUp from "src/components/authentication/SignUp";
+import SignIn from "src/components/authentication/SignIn";
 
 const Login = () => {
   const { token, setToken, isTokenExpired } = useToken();
@@ -181,187 +184,26 @@ const Login = () => {
     <div className="bg-light min-vh-100 d-flex flex-row align-items-center">
       <CContainer>
         {isLoggedIn ? (
-          <CRow className="justify-content-center">
-            <CCol md={8}>
-              <CCardGroup>
-                <CCard className="p-4">
-                  <CCardBody>
-                    <CForm>
-                      <h1>Select Course</h1>
-                      {alertConfig.visible && (
-                        <CAlert
-                          color={alertConfig.color}
-                          dismissible
-                          onClose={() =>
-                            setAlertConfig({ ...alertConfig, visible: false })
-                          }
-                          className="d-flex align-items-center"
-                        >
-                          <CIcon
-                            icon={alertConfig.icon}
-                            className="flex-shrink-0 me-2"
-                            width={24}
-                            height={24}
-                          />
-                          <div>{alertConfig.message}</div>
-                        </CAlert>
-                      )}
-                      <CInputGroup className="mb-3">
-                        <CInputGroupText>
-                          <CIcon icon={cilBook} />
-                        </CInputGroupText>
-                        <CFormSelect
-                          name="course"
-                          value={selectedCourse}
-                          onChange={handleCourseChange}
-                        >
-                          <option value="" disabled>
-                            Select a course
-                          </option>
-                          {availableCourses.map((course) => (
-                            <option key={course} value={course}>
-                              {course}
-                            </option>
-                          ))}
-                        </CFormSelect>
-                      </CInputGroup>
-                      <CButton
-                        type="button"
-                        color="primary"
-                        className="px-4"
-                        onClick={handleContinue}
-                      >
-                        Continue
-                      </CButton>
-                    </CForm>
-                  </CCardBody>
-                </CCard>
-              </CCardGroup>
-            </CCol>
-          </CRow>
+          <CourseSelect
+            alertConfig={alertConfig}
+            setAlertConfig={setAlertConfig}
+            selectedCourse={selectedCourse}
+            handleCourseChange={handleCourseChange}
+            availableCourses={availableCourses}
+            handleContinue={handleContinue}
+          />
         ) : (
           <>
-            <CRow className="justify-content-center">
-              <CCol md={8}>
-                <CCardGroup>
-                  <CCard className="p-4">
-                    <CCardHeader>
-                      <CCardTitle>Welcome to Feedbackdiary</CCardTitle>
-                      <CCardSubtitle>Feedback Dashboard</CCardSubtitle>
-                    </CCardHeader>
-                    <CCardBody>
-                      <CForm onSubmit={handleSubmit}>
-                        <h1>Login</h1>
-                        <br></br>
-                        {alertConfig.visible && (
-                          <CAlert
-                            color={alertConfig.color}
-                            dismissible
-                            onClose={() =>
-                              setAlertConfig({ ...alertConfig, visible: false })
-                            }
-                            className="d-flex align-items-center"
-                          >
-                            <CIcon
-                              icon={alertConfig.icon}
-                              className="flex-shrink-0 me-2"
-                              width={24}
-                              height={24}
-                            />
-                            <div>{alertConfig.message}</div>
-                          </CAlert>
-                        )}
-                        <CInputGroup className="mb-3">
-                          <CInputGroupText>
-                            <CIcon icon={cilUser} />
-                          </CInputGroupText>
-                          <CFormInput
-                            type="text"
-                            name="email"
-                            placeholder="email"
-                            autoComplete="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                          />
-                        </CInputGroup>
-                        <CInputGroup className="mb-4">
-                          <CInputGroupText>
-                            <CIcon icon={cilLockLocked} />
-                          </CInputGroupText>
-                          <CFormInput
-                            type="password"
-                            name="password"
-                            placeholder="Password"
-                            autoComplete="current-password"
-                            value={formData.password}
-                            onChange={handleInputChange}
-                          />
-                        </CInputGroup>
-                        <CRow>
-                          <CCol xs={9}>
-                            <CButton
-                              type="submit"
-                              color="primary"
-                              className="px-4"
-                            >
-                              Login
-                            </CButton>
-                          </CCol>
-                          <br></br>
-                          <br></br>
-                          <br></br>
-                          <CRow>
-                            <CCol xs={6} className="text-right">
-                              <CButton
-                                href="/changepasswordrequest"
-                                color="link"
-                                className="px-0"
-                              >
-                                Forgot password?
-                              </CButton>
-                            </CCol>
-                          </CRow>
-                        </CRow>
-                      </CForm>
-                    </CCardBody>
-                  </CCard>
-                  <CCard className="p-4">
-                    <CCardBody>
-                      <CCardImage orientation="top" src={logo}></CCardImage>
-                    </CCardBody>
-                  </CCard>
-                </CCardGroup>
-              </CCol>
-            </CRow>
+            <SignIn
+              alertConfig={alertConfig}
+              setAlertConfig={setAlertConfig}
+              formData={formData}
+              handleInputChange={handleInputChange}
+              handleSubmit={handleSubmit}
+              logo={logo}
+            />
             <br></br>
-            <CRow className="justify-content-center">
-              <CCol md={8}>
-                <CCard className="text-white bg-primary p-4">
-                  <CCardBody>
-                    <div>
-                      <h1>Sign up or add courses</h1>
-                      <CCardText>
-                        You may sign up or add additional courses here if you
-                        are a teacher. Please have your Teacher Course Token(s)
-                        ready.
-                      </CCardText>
-                      <CCol xs={9}>
-                        <Link to="/register">
-                          <CButton
-                            color="primary"
-                            className="mt-3"
-                            active
-                            tabIndex={-1}
-                          >
-                            Proceed
-                          </CButton>
-                        </Link>
-                      </CCol>
-                    </div>
-                  </CCardBody>
-                </CCard>
-              </CCol>
-            </CRow>
+            <SignUp />
           </>
         )}
       </CContainer>

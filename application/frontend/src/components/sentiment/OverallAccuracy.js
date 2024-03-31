@@ -18,7 +18,7 @@ const OverallAccuracy = ({ ai, loadingRadarChartAI }) => {
       <CCard className="mb-4">
         <CCardHeader>
           <CCardTitle>
-            Comment and Overall Entry sentiment A.I. accuracy
+            Comment and Overall Entry Sentiment Framework Accuracy
           </CCardTitle>
         </CCardHeader>
 
@@ -41,19 +41,10 @@ const OverallAccuracy = ({ ai, loadingRadarChartAI }) => {
                 <CCol xs={9}>
                   <CListGroup>
                     <CListGroupItem>Condition</CListGroupItem>
-
-                    <CListGroupItem>
-                      Positive comment determined '(very) positive'
-                    </CListGroupItem>
-                    <CListGroupItem>
-                      Negative comment determined '(very) negative'
-                    </CListGroupItem>
-                    <CListGroupItem>
-                      Additional comment determined 'neutral'
-                    </CListGroupItem>
-                    <CListGroupItem>
-                      Overall entry sentiment determined correctly
-                    </CListGroupItem>
+                    <CListGroupItem>Positive comment category</CListGroupItem>
+                    <CListGroupItem>Negative comment category</CListGroupItem>
+                    <CListGroupItem>Additional comment category</CListGroupItem>
+                    <CListGroupItem>OES determined correctly</CListGroupItem>
                   </CListGroup>
                 </CCol>
                 <CCol xs={3}>

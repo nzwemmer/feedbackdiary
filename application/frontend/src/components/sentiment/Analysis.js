@@ -9,6 +9,7 @@ import {
   CCardSubtitle,
   CButton,
   CSpinner,
+  CCardText,
 } from "@coreui/react";
 import { cilReload } from "@coreui/icons";
 import CIcon from "@coreui/icons-react";
@@ -32,7 +33,7 @@ const Analysis = ({
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
-            <CCardTitle>Sentiment Analysis visualization</CCardTitle>
+            <CCardTitle>Sentiment Analysis Visualization</CCardTitle>
 
             <CCardSubtitle>
               {loadingRadarChartAI ? (
@@ -44,13 +45,17 @@ const Analysis = ({
           </CCardHeader>
 
           <CCardBody>
+            <CCardText>
+              Comparison of Overall Entry Sentiment (OES) provided by students
+              and determined by the Framework.
+            </CCardText>
             <CRow>
               <CCol xs={6}>
                 <CCard className="mb-4">
                   <CCardHeader>
                     <CCardTitle>
                       {" "}
-                      Overall entry sentiment by students
+                      Student provided
                       <CButton
                         color="danger"
                         className={`float-end${
@@ -91,7 +96,7 @@ const Analysis = ({
                   <CCardHeader>
                     <CCardTitle>
                       {" "}
-                      Sentiment Analysis results by A.I.
+                      Framework determined
                       <CButton
                         color="danger"
                         className={`float-end${

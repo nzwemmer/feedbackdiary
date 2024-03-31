@@ -40,7 +40,7 @@ const OverTime = ({
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
-            <CCardTitle>Sentiment over time for {selectedCourse}</CCardTitle>
+            <CCardTitle>Sentiment Over Time for {selectedCourse}</CCardTitle>
             <CCardSubtitle>
               <div className="d-flex align-items-center">
                 <strong role="status">

@@ -29,7 +29,7 @@ const Statistics = ({
       <CCol xs={12}>
         <CCard className="mb-4">
           <CCardHeader>
-            <CCardTitle>Sentiment Analysis statistics</CCardTitle>
+            <CCardTitle>Sentiment Analysis Statistics</CCardTitle>
 
             <CCardSubtitle>
               {loadingRadarChartAI ? (

@@ -310,17 +310,6 @@ const Dashboard = () => {
         selectedCourse={selectedCourse}
       />
 
-      <Summary
-        loadingSummary={loadingSummary}
-        setLoadingSummary={setLoadingSummary}
-        setSummaryData={setSummaryData}
-        summaryData={summaryData}
-        fetchDataUpdate={fetchDataUpdate}
-        selectedCourse={selectedCourse}
-      />
-
-      <div style={{ marginTop: `2%` }}></div>
-
       <Analysis
         loadingRadarChartAI={loadingRadarChartAI}
         loadingRadarChartStudent={loadingRadarChartStudent}
@@ -333,6 +322,19 @@ const Dashboard = () => {
         setRadarChartDataStudent={setRadarChartDataStudent}
         setRadarChartDataAI={setRadarChartDataAI}
       />
+
+      <div style={{ marginTop: `2%` }}></div>
+
+      <Summary
+        loadingSummary={loadingSummary}
+        setLoadingSummary={setLoadingSummary}
+        setSummaryData={setSummaryData}
+        summaryData={summaryData}
+        fetchDataUpdate={fetchDataUpdate}
+        selectedCourse={selectedCourse}
+      />
+
+      <div style={{ marginTop: `2%` }}></div>
 
       <WordCounter
         loadingWords={loadingWords}

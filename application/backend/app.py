@@ -46,7 +46,7 @@ CORS(app, resources={
 def login_user():
     _, col_teachers = connect.establish_connection()
 
-    email = request.json.get("email", None)
+    email = request.json.get("email", None).lower()
     password = request.json.get("password", None)
 
     # Query the MongoDB collection for the teacher with the provided email
