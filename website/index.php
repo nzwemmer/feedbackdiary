@@ -1,21 +1,20 @@
-<?php
-session_start();
-include_once "assets/framework/header.php";
-?>
-    <script>
-        function redirectToURL(url) {
-            window.location.href = url;
-        }
-    </script>
+        <?php
+            session_start();
+            include_once "assets/framework/header.php";
+        ?>
 
-    <script src="assets/js/fadeLogin.js"></script>
+        <script>
+            function redirectToURL(url) {
+                window.location.href = url;
+            }
+        </script>
 
-    <!-- Login form -->
-    <form id="courseSelectForm" class="decor optional form-container">
-        <?php include_once "assets/forms/course_select.php"; ?>
-    </form>
+            <!-- Course Select form -->
+            <form id="courseSelectForm" class="decor optional form-container">
+                <?php include_once "assets/forms/course_select.php"; ?>
+            </form>
 
-<!-- Footer -->
-<?php include_once "assets/framework/footer.php"; ?>
-</body>
+        <!-- Footer -->
+        <?php include_once "assets/framework/footer.php"; ?>
+    </body>
 </html>

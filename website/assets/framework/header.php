@@ -13,7 +13,6 @@ include_once "config.php";
   <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css"/>
   <link rel="stylesheet" href="assets/style/daterangepicker-override.css"/>
   <link rel="icon" href="/favicon.ico" type="image/x-icon"/>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <meta name="theme-color" content="white" media="(prefers-color-scheme: light)"/>
   <meta name="theme-color" content="black" media="(prefers-color-scheme: dark)"/>
