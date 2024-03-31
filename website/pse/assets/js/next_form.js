@@ -1,17 +1,17 @@
-$(document).ready(function() {
+$(document).ready(function () {
   // Slide in the forms from the right initially
   var buttonPressCount = 0; // Initialize button press count
 
   // Function to apply red border to elements with specified IDs
   function applyLine(ids, classToAdd, classToRemove) {
-    ids.forEach(function(id) {
+    ids.forEach(function (id) {
       $("#" + id).addClass(classToAdd);
       $("#" + id).removeClass(classToRemove);
     });
   }
 
   // Handle form submissions
-  $("form").submit(function(e) {
+  $("form").submit(function (e) {
     e.preventDefault();
 
     var formData = $(this).serialize();
@@ -90,7 +90,7 @@ $(document).ready(function() {
       type: "POST",
       url: url,
       data: formData,
-      success: function(response) {
+      success: function (response) {
         if (~response.indexOf("Error:")) {
           call_error(response, element);
         } else {
@@ -112,9 +112,9 @@ $(document).ready(function() {
           call_success(response, element, currentForm);
         }
       },
-      error: function(xhr, status, error) {
+      error: function (xhr, status, error) {
         console.error("General error occurred.");
-      }
+      },
     });
 
     function download_file(response) {
@@ -131,14 +131,15 @@ $(document).ready(function() {
     }
 
     function call_error(response, element) {
-      var icon = '<span class="icon-outline"><i class="fa-solid fa-triangle-exclamation errorLogo"></i></span> '
+      var icon =
+        '<span class="icon-outline"><i class="fa-solid fa-triangle-exclamation errorLogo"></i></span> ';
       var errorMessage = icon + response;
       // Apply red line to elements with specified IDs
       applyLine(lineIds, "warningBorder", "successBorder");
 
-      $(element).html(errorMessage).addClass('shaking-element');
-      setTimeout(function() {
-        $(element).removeClass('shaking-element');
+      $(element).html(errorMessage).addClass("shaking-element");
+      setTimeout(function () {
+        $(element).removeClass("shaking-element");
       }, 500);
     }
 
@@ -146,19 +147,21 @@ $(document).ready(function() {
       var successMessage = "";
       applyLine(lineIds, "successBorder", "warningBorder");
       if (animate) {
-        var icon = '<span class="icon-outline"><i class="fa-solid fa-check fa-bounce successLogo"></i></span> ';
+        var icon =
+          '<span class="icon-outline"><i class="fa-solid fa-check fa-bounce successLogo"></i></span> ';
         successMessage = icon + response;
       } else {
         successMessage = response;
       }
       $(element).html(successMessage);
-      setTimeout(function() {
+      setTimeout(function () {
         if (animate) {
-          form.animate({ left: "-100%" }, 750, function() {
+          form.animate({ left: "-100%" }, 750, function () {
             form.hide();
             if (refresh) {
-              setTimeout(function() {
-                if (delay === 0) { // For the about, or any future page going to home after.
+              setTimeout(function () {
+                if (delay === 0) {
+                  // For the about, or any future page going to home after.
                   window.location.href = "/";
                 } else {
                   location.reload();
@@ -170,24 +173,35 @@ $(document).ready(function() {
           });
         } else {
           buttonPressCount++; // Increment the button press count
-          var fetchStatusButton = form.find('.fetch_status_button');
+          var fetchStatusButton = form.find(".fetch_status_button");
           var currentContent = fetchStatusButton.html().trim();
           var hide = '<i class="fa-solid fa-eye-slash"></i> hide';
           var show = '<i class="fa-solid fa-eye"></i> show';
           var newContent = currentContent === show ? hide : show;
           fetchStatusButton.html(newContent);
           if (buttonPressCount > 1) {
-            form.find('.fetch_status_class').toggle(); // Hide the content on the second button press
+            form.find(".fetch_status_class").toggle(); // Hide the content on the second button press
           }
-          toggleButtonAll(".time_button", '<i class="fa-solid fa-eye-slash"></i> <i class="fa-solid fa-clock"></i>');
-          toggleButtonAll(".pos_button", '<i class="fa-solid fa-eye-slash"></i> <i class="fa-solid fa-thumbs-up positive"></i>');
-          toggleButtonAll(".neg_button", '<i class="fa-solid fa-eye-slash"></i> <i class="fa-solid fa-thumbs-down negative"></i>');
-          toggleButtonAll(".add_button", '<i class="fa-solid fa-eye-slash"></i> <i class="fa-solid fa-circle-question"></i>');
-          form.find('.fetch_buttons_class').toggle();
+          toggleButtonAll(
+            ".time_button",
+            '<i class="fa-solid fa-eye-slash"></i> <i class="fa-solid fa-clock"></i>'
+          );
+          toggleButtonAll(
+            ".pos_button",
+            '<i class="fa-solid fa-eye-slash"></i> <i class="fa-solid fa-thumbs-up positive"></i>'
+          );
+          toggleButtonAll(
+            ".neg_button",
+            '<i class="fa-solid fa-eye-slash"></i> <i class="fa-solid fa-thumbs-down negative"></i>'
+          );
+          toggleButtonAll(
+            ".add_button",
+            '<i class="fa-solid fa-eye-slash"></i> <i class="fa-solid fa-circle-question"></i>'
+          );
+          form.find(".fetch_buttons_class").toggle();
         }
       }, delay);
     }
-    
 
     function getCurrentDate() {
       var now = new Date();
