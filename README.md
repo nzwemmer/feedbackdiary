@@ -58,8 +58,8 @@ MongoDB is used for our database. We use the following structure:
 
 ## Adding a course
 Courses can be added to this dashboard as follows:  
-- create a new course in the MongoDB database, using the format of an existing course. Make sure you use the same course abbreviation 
+- create a new course in the MongoDB database, using the format of an existing course. Make sure you use the same course abbreviation as the one used for the Diary Dashboard;
 - generate a random Teacher Course Token (TCT) which should be different from the general token generated for the Diary Dashboard;
-- copy an existing document in the courses collection (see above). Set the data for the new course as required.
-- provide the teacher with the newly generated TCT. They should now be able to register for a new account, or add it to their existing account;
-- the dashboard automatically downloads the entries for the newly added course and performs the necessary operations on it.
+- copy an existing document in the courses collection (see above). Set the data for the new course as required;
+- provide the teacher with the newly generated TCT. They should now be able to register for a new account, or add it to their existing account.
+- a folder with empty data is automatically created for the newly added course. Let teachers use the dashboard to generate new data as necessary.
