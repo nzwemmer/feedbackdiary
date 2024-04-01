@@ -29,7 +29,7 @@ def read_json_messages(course, student_path, teacher_path, message_path, overwri
 
     if os.path.exists(read_path) and not overwrite:
         if verbose:
-            print("Skipping recalculate...")
+            print("Skipping refiltering...")
 
         with open(read_path, 'r') as json_file:
             return json.load(json_file)
@@ -39,8 +39,17 @@ def read_json_messages(course, student_path, teacher_path, message_path, overwri
         messages = json.load(json_file)
 
     # Create list of student names and teacher names which we want filtered.
-    student_names = extract_names_from_excel(student_path)
-    teacher_names = extract_names_from_excel(teacher_path)
+    # If the xlsx files did not exist, omit from filter.
+    if student_path and os.path.exists(student_path):
+        student_names = extract_names_from_excel(student_path)
+    else:
+        student_names = []
+
+    if teacher_path and os.path.exists(teacher_path):
+        teacher_names = extract_names_from_excel(teacher_path)
+    else:
+        teacher_names = []
+
     names = student_names + teacher_names
 
     # Initialize lists to store student-provided sentiment, positive, negative, and additional messages

@@ -17,9 +17,7 @@ const OverallAccuracy = ({ ai, loadingRadarChartAI }) => {
     <CCol xs={6}>
       <CCard className="mb-4">
         <CCardHeader>
-          <CCardTitle>
-            Comment and Overall Entry Sentiment Framework Accuracy
-          </CCardTitle>
+          <CCardTitle>Framework Accuracy</CCardTitle>
         </CCardHeader>
 
         <CCardBody>
@@ -32,10 +30,10 @@ const OverallAccuracy = ({ ai, loadingRadarChartAI }) => {
           ) : (
             <>
               <CCardText>
-                Weighted accuracy of positive, negative and additional message
-                fields sentiment determination in FeedbackDiary. Weighted
-                accuracy takes into account how close the predicted sentiment
-                was to the expected or provided sentiment.
+                Weighted Accuracy for entire Framework on positive, negative,
+                and additional comment categories. This means all comments for
+                each category, determined correctly by the average of all models
+                and tools.
               </CCardText>
               <CRow>
                 <CCol xs={9}>

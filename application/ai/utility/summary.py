@@ -1,7 +1,7 @@
 from transformers import pipeline
 import os
 from datetime import datetime
-from application.ai.utility.reader import read_json_full
+from application.ai.utility.reader import read_json_full, read_json_messages
 from application.backend.common import *
 import torch
 
@@ -52,7 +52,7 @@ def summarize(text, device=None, truncate=False):
     return summary
 
 
-def run_truncated(message_path, store_path=None, device=None, overwrite=False):
+def run_truncated(course, message_path, student_path=None, teacher_path=None, store_path=None, device=None, overwrite=False):
 
     if store_path:
         if os.path.exists(store_path) and not overwrite:
@@ -60,7 +60,7 @@ def run_truncated(message_path, store_path=None, device=None, overwrite=False):
             modify_date = datetime.fromtimestamp(os.path.getmtime(store_path))
             return summaries, modify_date
 
-    messages = read_json_full(message_path)["entries"]
+    messages = read_json_messages(course, student_path, teacher_path, message_path, overwrite=True, return_entries=True, verbose=True)["entries"]
     positive, negative, additional = zip(
         *[(message["positive"], message["negative"], message["additional"]) for message in messages])
 
@@ -115,9 +115,9 @@ if __name__ == "__main__":
 
     device = "cpu" if args.cpu else "cuda"
     
-    message_path = f"../../data/{args.course}/messages_filtered.json"
+    message_path = f"../../data/{args.course}/entries.json"
     store_path = "TEST.JSON"
-    run_truncated(message_path, store_path, device, args.overwrite)
+    run_truncated(args.course, message_path, store_path=store_path, device=device, overwrite=args.overwrite)
 
     # Useful if truncated messages somehow do not create accurate enough results. Much slower however. Omitted for POC version.
     # run_combined_messages(message_path)

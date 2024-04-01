@@ -2,10 +2,14 @@ from datetime import datetime, timedelta
 import random
 import json
 import re
-# TODO: Delete me after finishing.
+import os
+import shutil
+import connect_diary_dashboard
+from pathlib import Path
 
 
 def generate_random_data(start_date_str, end_date_str):
+    # TODO: Delete me after finishing.
     data = {}
 
     # Convert start_date_str and end_date_str to datetime objects
@@ -115,6 +119,34 @@ def read_json(save_path):
     with open(save_path, 'r') as json_file:
         return json.load(json_file)
 
+def download_all_data_authorized():
+    results = connect_diary_dashboard.download_entries()
+
+    try:
+        for course, entries in results.items():
+            save_path = f"../data/{course}/entries.json"  # 8: to trim https://
+            file = Path(save_path)
+            file.parent.mkdir(parents=True, exist_ok=True)
+            store_json(save_path, entries)
+
+        return {"msg": "Download complete."}
+    except Exception as e:
+        return {"msg": "Failed to download. Please try again later."}
+
+
+def setup_new_course(course_path):
+    os.mkdir(course_path)
+    source_dir = 'new_course_template'
+    
+    for item in os.listdir(source_dir):
+        source_item = os.path.join(source_dir, item)
+        destination_item = os.path.join(course_path, item)
+        if os.path.isdir(source_item):
+            shutil.copytree(source_item, destination_item)
+        else:
+            shutil.copy2(source_item, destination_item)
+
+    download_all_data_authorized()
 
 # Function to check password strength
 def is_strong_password(password):

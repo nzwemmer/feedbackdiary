@@ -103,10 +103,17 @@ def register():
         # Check database error.
         if course:
             course_id = ObjectId(course["_id"])
+            course_name = course["name"]
+            course_path = os.path.join(data_dir, course_name)
+            # If this course has no data folder yet, create the datafolder
+            # and fill the folder with the setup data.
+            if not os.path.exists(course_path):
+                setup_new_course(course_path)
+
             if course_id not in course_list:
                 course_list.append(course_id)
         else:
-            return {"msg": f"Incorrect course token: {course_token}"}, 401
+            return {"msg": f"Course could not be found: {course_token}"}, 401
 
     if teacher:
         # Update teacher "courses" value.
@@ -119,7 +126,7 @@ def register():
             access_token = create_access_token(identity=email)
             return {"msg": "Available course(s) updated! Logging in...", "access_token": access_token}
         else:
-            return {"msg": "There was an error adding the new courses. Maybe you already had access? Please try again later."}, 500
+            return {"msg": "There was an error adding the new course(s). Maybe you already had access? Otherwise, please try again later."}, 500
     else:
         # Create a new teacher in case it did not exist yet.
         new_teacher = {
@@ -361,18 +368,7 @@ def handle_labels():
 @app.route('/api/download/entries', methods=['POST'])
 @jwt_required()
 def download_all_data():
-    results = connect_diary_dashboard.download_entries()
-
-    try:
-        for course, entries in results.items():
-            save_path = f"../data/{course}/entries.json"  # 8: to trim https://
-            file = Path(save_path)
-            file.parent.mkdir(parents=True, exist_ok=True)
-            store_json(save_path, entries)
-
-        return {"msg": "Download complete."}
-    except Exception as e:
-        return {"msg": "Failed to download. Please try again later."}
+    return download_all_data_authorized()
 
 
 @app.route('/api/load/sentiment', methods=['POST', 'PUT'])
@@ -381,6 +377,8 @@ def get_sentiment():
     overwrite = False
     # Verbose is false for API call, can be set to True for debugging.
     verbose = False
+    verbose = True
+
     arguments = request.get_json()
 
     # arguments["course"] is the course abbreviation, agruments["type"] is student/ai argument.
@@ -417,12 +415,12 @@ def get_summary():
 
     if arguments and "course" in arguments:
         course = arguments["course"]
-        read_path = f"../data/{course}/messages_filtered.json"
+        read_path = f"../data/{course}/entries.json"
         store_path = f"../data/{course}/summary.json"
         overwrite = True if request.method == 'PUT' else False
 
-        summaries, modify_date = summary.run_truncated(
-            read_path, store_path, overwrite=overwrite)
+        summaries, modify_date = summary.run_truncated(course, read_path, store_path=store_path, overwrite=overwrite)
+
 
         return {"data": summaries, "modify_date": format_human_readable_date(modify_date)}
     else:
@@ -430,5 +428,5 @@ def get_summary():
 
 
 if __name__ == '__main__':
-    # app.run(ssl_context=('../.cert/cert.pem', '../.cert/key.pem'), debug=True, port=12345, host="0.0.0.0")
+    data_dir = f"{os.path.expanduser('~')}/feedbackdiary/application/data"
     app.run(debug=True, port=12345, host="0.0.0.0")

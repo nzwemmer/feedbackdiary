@@ -17,7 +17,7 @@ const ToolAccuracy = ({ sa, loadingRadarChartAI }) => {
     <CCol xs={6}>
       <CCard className="mb-4">
         <CCardHeader>
-          <CCardTitle>Sentiment Analysis Tool Accuracies</CCardTitle>
+          <CCardTitle>Tool Accuracies</CCardTitle>
         </CCardHeader>
 
         <CCardBody>
