@@ -9,9 +9,9 @@ from application.ai.utility import count_recurring
 from application.ai.utility import sentiment_analysis
 from application.ai.utility import summary
 
-import connect
+import connect_mongodb
 from common import *
-import connect_fd_php
+import connect_diary_dashboard
 from flask_bcrypt import Bcrypt
 from flask_mail import Mail, Message
 import random
@@ -44,7 +44,7 @@ CORS(app, resources={
 
 @app.route('/api/login', methods=['POST'])
 def login_user():
-    _, col_teachers = connect.establish_connection()
+    _, col_teachers = connect_mongodb.establish_connection()
 
     email = request.json.get("email", None).lower()
     password = request.json.get("password", None)
@@ -80,7 +80,7 @@ def register():
         return {"msg": "Passwords need to be at least 8 characters and a combination of letters, numbers, and at least one special character"}, 401
 
     # Connect to the database.
-    col_courses, col_teachers = connect.establish_connection()
+    col_courses, col_teachers = connect_mongodb.establish_connection()
     course_list = []
 
     # See if the teacher already exists.
@@ -140,7 +140,7 @@ def register():
 
 @app.route('/api/changepasswordrequest', methods=['POST'])
 def change_password_request():
-    _, col_teachers = connect.establish_connection()
+    _, col_teachers = connect_mongodb.establish_connection()
 
     # Get the email address from the request JSON
     email = request.json.get("email", None)
@@ -181,7 +181,7 @@ def change_password_request():
 
 @app.route('/api/changepassword', methods=['POST'])
 def reset_password():
-    _, col_teachers = connect.establish_connection()
+    _, col_teachers = connect_mongodb.establish_connection()
 
     # Get the reset token and new password from the request JSON
     reset_token = request.json.get("reset_token", None)
@@ -227,7 +227,7 @@ def logout():
 @app.route("/api/load/courses", methods=["GET"])
 @jwt_required()
 def load_courses():
-    col_courses, col_teachers = connect.establish_connection()
+    col_courses, col_teachers = connect_mongodb.establish_connection()
 
     # Get the user's email from the JWT
     email = get_jwt_identity()
@@ -361,7 +361,7 @@ def handle_labels():
 @app.route('/api/download/entries', methods=['POST'])
 @jwt_required()
 def download_all_data():
-    results = connect_fd_php.download_entries()
+    results = connect_diary_dashboard.download_entries()
 
     try:
         for course, entries in results.items():
