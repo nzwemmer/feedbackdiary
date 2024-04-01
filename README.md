@@ -20,8 +20,8 @@ Courses can be added to this dashboard as follows:
 - copy the contents from another course into this folder;
 - modify the <course>/assets/framework/config.php file. Modify "course", "course_short", "programme", "programme_short" session variables;
 - modify the <course>/functions/connect.php file. Modify "$dbdatabase" variable to match the newly created database;
-- copy /etc/apache2/sites-enabled/feedbackdiary.conf to /etc/apache2/sites-enabled/<course>.conf
-- modify /etc/apache2/sites-enabled/<course>.conf by adding /<course> to both entries of /var/www/html within the file;
+- copy /etc/apache2/sites-enabled/feedbackdiary.conf to /etc/apache2/sites-enabled/\<course\>.conf
+- modify /etc/apache2/sites-enabled/\<course\>.conf by adding /\<course\> to both entries of /var/www/html within the file;
 - restart apache2: sudo systemctl restart apache2.
 
 Your new course should now be up and running!
