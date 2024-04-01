@@ -71,7 +71,7 @@ def run_application(app_type, comments, none_indices, num_pos, num_neg, device="
     accuracies = {}
 
     # Check if GPU is available for models supporting it, and fall back to CPU
-    # If CUDA unavailable.
+    # if CUDA unavailable.
     if device == "cuda":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

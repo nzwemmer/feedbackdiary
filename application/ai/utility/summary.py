@@ -4,8 +4,6 @@ from datetime import datetime
 from application.ai.utility.reader import read_json_full
 from application.backend.common import *
 import torch
-import argparse
-
 
 def combine_category(messages):
     max_length = 1024
@@ -44,7 +42,7 @@ def combine_category(messages):
 def summarize(text, device=None, truncate=False):
     # If no device or GPU was parsed, choose the best available option.
     # If GPU is unavailable, instead of crashing, it will resort to CPU.
-    if not device or device == "gpu":
+    if not device or device == "cuda":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     summarizer = pipeline("text2text-generation",
@@ -101,17 +99,25 @@ def run_combined_messages(message_path):
 
 
 if __name__ == "__main__":
-    message_path = "../../data/PSE/messages_filtered.json"
+    import argparse
 
     parser = argparse.ArgumentParser(
-        description="Run truncated function with specified arguments.")
-    parser.add_argument("--device", default="cpu",
-                        choices=["cpu", "gpu"], help="Specify the device (cpu/cuda)")
+        description="Run summary with specified arguments.")
 
+    parser.add_argument("--course", type=str,
+                        default="PSE", help="Course name")
+    parser.add_argument("--overwrite", action="store_true",
+                    default=True, help="Overwrite existing files")
+    parser.add_argument("--cpu", action="store_true",
+                    default=False, help="Use CPU instead of CUDA")
+    
     args = parser.parse_args()
 
-    message_path = "../../data/PSE/messages_filtered.json"
-    run_truncated(message_path, "TEST.JSON", device=args.device)
+    device = "cpu" if args.cpu else "cuda"
+    
+    message_path = f"../../data/{args.course}/messages_filtered.json"
+    store_path = "TEST.JSON"
+    run_truncated(message_path, store_path, device, args.overwrite)
 
     # Useful if truncated messages somehow do not create accurate enough results. Much slower however. Omitted for POC version.
     # run_combined_messages(message_path)
