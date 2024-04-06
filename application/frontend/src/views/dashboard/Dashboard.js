@@ -323,8 +323,6 @@ const Dashboard = () => {
         setRadarChartDataAI={setRadarChartDataAI}
       />
 
-      <div style={{ marginTop: `2%` }}></div>
-
       <Summary
         loadingSummary={loadingSummary}
         setLoadingSummary={setLoadingSummary}

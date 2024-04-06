@@ -69,9 +69,9 @@ def run_truncated(course, message_path, student_path=None, teacher_path=None, st
     additional_string = "".join(additional)
 
     summaries = {
-        "positive_summary": summarize(positive_string, device, truncate=True).replace("sodm", "REDACTED"),
-        "negative_summary": summarize(negative_string, device, truncate=True).replace("sodm", "REDACTED"),
-        "additional_summary": summarize(additional_string, device, truncate=True).replace("sodm", "REDACTED")
+        "positive_summary": summarize(positive_string, device, truncate=True),
+        "negative_summary": summarize(negative_string, device, truncate=True),
+        "additional_summary": summarize(additional_string, device, truncate=True)
     }
 
     if store_path:

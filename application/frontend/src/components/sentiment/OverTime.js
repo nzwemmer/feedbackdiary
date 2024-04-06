@@ -16,7 +16,7 @@ import CIcon from "@coreui/icons-react";
 import { cilReload } from "@coreui/icons";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import BarChart from "./Charts/BarChart";
+import BarChart from "./charts/BarChart";
 import { useState } from "react";
 
 const OverTime = ({

@@ -1,23 +1,14 @@
 import json
-# from textblob import TextBlob  # Import TextBlob for sentiment analysis
 import pandas as pd
 import os
 from application.ai.privacy.remove_names import remove_names_from_message
 
 
-def read_text(path="data/text.txt"):
-    lines = []
-
-    with open(path, "r") as file:
-        for line in file:
-            if not line[0] == "#":
-                lines.append(line.strip())
-    return lines
-
-
 def read_json_messages(course, student_path, teacher_path, message_path, overwrite=False, return_entries=False, verbose=False):
-    # For returning entries, we need to only filter out the unneccessary information but
-    # we still want to compare sentiment for each of the entries, complete with pos/neg/add messages including parsed sentiment.
+    """
+    Function that reads the student submissions and extract either a full list of all entries (return_entries True), 
+    or a list of comments sorted by sentiment, and a list of all OES for each entry.
+    """
 
     data_dir = f"{os.path.expanduser('~')}/feedbackdiary/application/data"
 
@@ -31,12 +22,10 @@ def read_json_messages(course, student_path, teacher_path, message_path, overwri
         if verbose:
             print("Skipping refiltering...")
 
-        with open(read_path, 'r') as json_file:
-            return json.load(json_file)
+        return read_json_full(read_path)
 
     # Load JSON data from the file
-    with open(message_path, 'r') as json_file:
-        messages = json.load(json_file)
+    messages = read_json_full(message_path)
 
     # Create list of student names and teacher names which we want filtered.
     # If the xlsx files did not exist, omit from filter.
@@ -73,7 +62,8 @@ def read_json_messages(course, student_path, teacher_path, message_path, overwri
         additional_message = remove_names_from_message(
             additional_message, names)
 
-        # If a request to the reader was done for sentiment analysis, make sure it is stored for processing later.
+        # If entries need to be returned, add the results from the filtering to the entries.
+        # Otherwise, add it to the respective lists.
         if return_entries:
             entries_filtered.append({"positive": positive_message, "negative": negative_message,
                                     "additional": additional_message, "sentiment": sentiment})
@@ -84,36 +74,48 @@ def read_json_messages(course, student_path, teacher_path, message_path, overwri
             # Add the messages to their respective list.
             positive_messages.append(positive_message)
             negative_messages.append(negative_message)
-
-            # if "_none" not in additional_message:
             additional_messages.append(additional_message)
 
     if return_entries:
+        data = {"entries": entries_filtered}
         # Save the output of the filtered entries separate to a file for sentiment analysis.
-        with open(read_path, 'w') as output_file:
-            json.dump({
-                "entries": entries_filtered
-            }, output_file)
-        return read_json_full(read_path)
     else:
         # Save the output of the filtered and sorted outputs to a file for counting.
-        with open(read_path, 'w') as output_file:
-            json.dump({
-                "positive": positive_messages,
-                "negative": negative_messages,
-                "additional": additional_messages,
-                "sentiment": sentiments
-            }, output_file)
-        return read_json_full(read_path)
+        data = {
+            "positive": positive_messages,
+            "negative": negative_messages,
+            "additional": additional_messages,
+            "sentiment": sentiments
+        }
+    write_json_full(read_path, data)
+    return read_json_full(read_path)
 
 
-def read_json_full(path="../data/entries.json"):
+def write_json_full(path, data):
+    """ 
+    Writing JSON data to a file.
+    """
+
+    with open(path, 'w') as output_file:
+        json.dump(data, output_file)
+
+
+def read_json_full(path):
+    """ 
+    Reading JSON data to a file.
+    """
+
     with open(path, 'r') as json_file:
         data = json.load(json_file)
     return data
 
 
-def extract_names_from_excel(excel_file_path='data/students.xlsx'):
+def extract_names_from_excel(excel_file_path):
+    """
+    Function takes names from students and teachers from the excel 
+    file that was manually downloaded from Datanose for their course.
+    """
+
     df = pd.read_excel(excel_file_path)
 
     if 'FirstName' in df.columns and 'LastName' in df.columns:

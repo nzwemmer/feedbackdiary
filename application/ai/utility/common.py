@@ -30,8 +30,9 @@ def detect_language(message):
 
 
 def create_filters(stop_words_en, stop_words_nl):
-    # Remove custom values that we want to remove. sodm is a custom replacement for student names.
-    custom_filter = ["sodm", "<", ">"]
+    # Remove custom values that we want to remove. REDACTED is a custom replacement for student and teacher names.
+    # Simply add new words to this list at your leisure.
+    custom_filter = ["REDACTED", "<", ">", "kinda", "jullie", "zodat"]
 
     return set(stop_words_en + custom_filter), set(stop_words_nl + custom_filter)
 

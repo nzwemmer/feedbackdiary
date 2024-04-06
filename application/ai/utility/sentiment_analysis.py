@@ -1,17 +1,18 @@
 import os
-from application.ai.utility.reader import read_json_messages
+from application.ai.utility.reader import read_json_messages, write_json_full, read_json_full
 from application.ai.utility.common import *
 import application.ai.included.models as models_mod
 import application.ai.included.tools as tools_mod
 from application.backend.common import *
 from datetime import datetime
 import torch
-import os
 
 
 def get_callable_functions(module):
     """
     Retrieve callable functions defined directly within a module.
+    This is used to determine for models.py and tools.py which 
+    models and tools are callable.
     """
     # Retrieve all attributes of the module
     attributes = dir(module)
@@ -27,11 +28,31 @@ def get_callable_functions(module):
 
 def entry_accuracy(student_provided, ai_determined):
     sentiment_mapping = {
-        "very positive": {"very positive": 1, "positive": 0.75, "neutral": 0.25, "negative": 0, "very negative": 0},
-        "positive": {"very positive": 0.75, "positive": 1, "neutral": 0.75, "negative": 0.25, "very negative": 0},
-        "neutral": {"very positive": 0.5, "positive": 0.75, "neutral": 1, "negative": 0.75, "very negative": 0.5},
-        "negative": {"very positive": 0, "positive": 0.25, "neutral": 0.75, "negative": 1, "very negative": 0.75},
-        "very negative": {"very positive": 0, "positive": 0, "neutral": 0.25, "negative": 0.75, "very negative": 1},
+        "very positive": {"very positive": 1,
+                          "positive": 0.75,
+                          "neutral": 0.25,
+                          "negative": 0,
+                          "very negative": 0},
+        "positive": {"very positive": 0.75,
+                     "positive": 1,
+                     "neutral": 0.75,
+                     "negative": 0.25,
+                     "very negative": 0},
+        "neutral": {"very positive": 0.5,
+                    "positive": 0.75,
+                    "neutral": 1,
+                    "negative": 0.75,
+                    "very negative": 0.5},
+        "negative": {"very positive": 0,
+                     "positive": 0.25,
+                     "neutral": 0.75,
+                     "negative": 1,
+                     "very negative": 0.75},
+        "very negative": {"very positive": 0,
+                          "positive": 0,
+                          "neutral": 0.25,
+                          "negative": 0.75,
+                          "very negative": 1},
     }
 
     if len(student_provided) != len(ai_determined):
@@ -51,9 +72,23 @@ def comment_accuracy(comment_type, results):
     max_accuracy = len(results)  # 49 for positive for PSE dataset.
 
     sentiment_mapping = {
-        "positive": {"very positive": 1, "positive": 1, "neutral": 0.5, "negative": 0, "very negative": 0},
-        "negative": {"very positive": 0, "positive": 0, "neutral": 0.5, "negative": 1, "very negative": 1},
-        "additional": {"very positive": 0.5, "positive": 0.75, "neutral": 1, "negative": 0.75, "very negative": 0.5},
+        "positive": {"very positive": 1,
+                     "positive": 1,
+                     "neutral": 0.5,
+                     "negative": 0,
+                     "very negative": 0},
+
+        "negative": {"very positive": 0,
+                     "positive": 0,
+                     "neutral": 0.5,
+                     "negative": 1,
+                     "very negative": 1},
+
+        "additional": {"very positive": 0.5,
+                       "positive": 0.75,
+                       "neutral": 1,
+                       "negative": 0.75,
+                       "very negative": 0.5},
     }
 
     for result in results:
@@ -122,7 +157,7 @@ def run_sentiment_analysis(course, read_paths, store_paths, ai=False, verbose=Fa
             modification_date_ai = datetime.fromtimestamp(
                 os.path.getmtime(ai_data_path))
 
-            return read_json(student_data_path), read_json(ai_data_path), read_json(accuracy_path), modification_date_student, modification_date_ai
+            return read_json_full(student_data_path), read_json_full(ai_data_path), read_json_full(accuracy_path), modification_date_student, modification_date_ai
 
     # If overwrite was set to true (PUT request), re-filter all input messages for use with sentiment analysis.
     # If overwrite was set to false (POST request), do not re-filter and just read the files instead.
@@ -154,8 +189,7 @@ def run_sentiment_analysis(course, read_paths, store_paths, ai=False, verbose=Fa
         # Combine positive, negative and additional comments together.
         comments = pos + neg + add
 
-        # ai_sentiment_counter = {'very negative': 0, 'negative': 0, 'neutral': 0, 'positive': 0, 'very positive': 0}
-
+        # Get per-model and per-tool accuracies and results.
         model_accuracies, model_results = run_application(
             models_mod, comments, none_indices, num_pos, num_neg, device)
         tool_accuracies, tool_results = run_application(
@@ -219,20 +253,20 @@ def run_sentiment_analysis(course, read_paths, store_paths, ai=False, verbose=Fa
         # Create sentiment counter for AI determined sentiment.
         ai_entry_sentiment_counter = sentiment_counter(ai_entry_sentiment)
 
-        store_json(ai_data_path, ai_entry_sentiment_counter)
+        write_json_full(ai_data_path, ai_entry_sentiment_counter)
         total_accuracy = {"models": model_accuracies, "tools": tool_accuracies, "pos": average_positive_comment_accuracy,
                           "neg": average_negative_comment_accuracy, "add": average_additional_comment_accuracy, "entry": average_entry_accuracy}
-        store_json(accuracy_path, total_accuracy)
+        write_json_full(accuracy_path, total_accuracy)
 
     # Always store student results.
-    store_json(student_data_path, student_entry_sentiment_counter)
+    write_json_full(student_data_path, student_entry_sentiment_counter)
 
     # After storing all results, read them from the files and return them.
     modification_date_student = datetime.fromtimestamp(
         os.path.getmtime(student_data_path))
     modification_date_ai = datetime.fromtimestamp(
         os.path.getmtime(ai_data_path))
-    return read_json(student_data_path), read_json(ai_data_path), read_json(accuracy_path), modification_date_student, modification_date_ai
+    return read_json_full(student_data_path), read_json_full(ai_data_path), read_json_full(accuracy_path), modification_date_student, modification_date_ai
 
 
 if __name__ == "__main__":

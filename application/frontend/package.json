@@ -71,7 +71,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "proxy": "http://192.168.2.204:12345/",
-  "comments_by_niels": "This works for local development."
+  }
 }
