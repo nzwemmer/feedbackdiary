@@ -55,12 +55,12 @@ def read_json_messages(course, student_path, teacher_path, message_path, overwri
         positive_message = entry["message_positive"]
         negative_message = entry["message_negative"]
         additional_message = entry["message_additional"]
-
+        
         # Remove names from the messages.
-        positive_message = remove_names_from_message(positive_message, names)
-        negative_message = remove_names_from_message(negative_message, names)
+        positive_message = remove_names_from_message(positive_message, names, verbose)
+        negative_message = remove_names_from_message(negative_message, names, verbose)
         additional_message = remove_names_from_message(
-            additional_message, names)
+            additional_message, names, verbose)
 
         # If entries need to be returned, add the results from the filtering to the entries.
         # Otherwise, add it to the respective lists.

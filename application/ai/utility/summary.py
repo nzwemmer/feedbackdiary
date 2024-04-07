@@ -53,20 +53,20 @@ def summarize(text, device=None, truncate=False):
 
 
 def run_truncated(course, message_path, student_path=None, teacher_path=None, store_path=None, device=None, overwrite=False):
-
     if store_path:
         if os.path.exists(store_path) and not overwrite:
             summaries = read_json(store_path)
             modify_date = datetime.fromtimestamp(os.path.getmtime(store_path))
             return summaries, modify_date
 
-    messages = read_json_messages(course, student_path, teacher_path, message_path, overwrite=True, return_entries=True, verbose=True)["entries"]
-    positive, negative, additional = zip(
-        *[(message["positive"], message["negative"], message["additional"]) for message in messages])
+    messages = read_json_messages(course, student_path, teacher_path, message_path, overwrite=overwrite, return_entries=False, verbose=True)
+    positive = messages["positive"]
+    negative = messages["negative"]
+    additional = messages["additional"]
 
-    positive_string = "".join(positive)
-    negative_string = "".join(negative)
-    additional_string = "".join(additional)
+    positive_string = " ".join(positive)
+    negative_string = " ".join(negative)
+    additional_string = " ".join(additional)
 
     summaries = {
         "positive_summary": summarize(positive_string, device, truncate=True),

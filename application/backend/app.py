@@ -417,10 +417,11 @@ def get_summary():
         course = arguments["course"]
         read_path = f"../data/{course}/entries.json"
         store_path = f"../data/{course}/summary.json"
+        student_path = f"../data/{course}/students.xlsx"
+        teacher_path = f"../data/{course}/teachers.xlsx"
         overwrite = True if request.method == 'PUT' else False
 
-        summaries, modify_date = summary.run_truncated(course, read_path, store_path=store_path, overwrite=overwrite)
-
+        summaries, modify_date = summary.run_truncated(course, read_path, student_path, teacher_path, store_path, overwrite=overwrite)
 
         return {"data": summaries, "modify_date": format_human_readable_date(modify_date)}
     else:
