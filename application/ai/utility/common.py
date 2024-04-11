@@ -33,9 +33,10 @@ def create_filters(stop_words_en, stop_words_nl):
     # Remove custom values that we want to remove. REDACTED is a custom replacement for student and teacher names.
     # Simply add new words to this list at your leisure.
     # NOTE: noah and ana were added here because their names are also a common English word.
-    custom_filter = ["REDACTED", "<", ">", "noah", "ana"]
+    custom_filter = ["REDACTED", "<REDACTED>", "<", ">", "noah", "ana"]
+    custom_filter_lower = [word.lower() for word in custom_filter]
 
-    return set(stop_words_en + custom_filter), set(stop_words_nl + custom_filter)
+    return set(stop_words_en + custom_filter_lower), set(stop_words_nl + custom_filter_lower)
 
 
 def sentiment_counter(sentiments):
